@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Report from './(modals)/report';
 
 export default function Camera() {
   const [facing, setFacing] = useState<CameraType>('back');
@@ -11,6 +11,8 @@ export default function Camera() {
   const [image, setImage] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(true);
   const cameraRef = useRef<CameraView>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [capturedImageUri, setCapturedImageUri] = useState<string>('');
 
   const requestCameraPermission = async () => {
     if (!permission) return;
@@ -64,7 +66,20 @@ export default function Camera() {
     requestCameraPermission();
   };
 
-  const proceed = () => router.push('/');
+  const proceed = () => {
+    if (image) {
+      setCapturedImageUri(image);
+      setShowReportModal(true);
+    }
+  };
+
+  const handleReportClose = () => {
+    setShowReportModal(false);
+    // Reset to camera view after closing report
+    setImage(null);
+    setShowCamera(true);
+    setCapturedImageUri('');
+  };
 
   if (!permission) {
     return (
@@ -97,6 +112,13 @@ export default function Camera() {
             <Text style={styles.proceedButtonText}>Proceed</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Report Modal */}
+        <Report
+          visible={showReportModal}
+          onClose={handleReportClose}
+          imageUri={capturedImageUri}
+        />
       </View>
     );
   }

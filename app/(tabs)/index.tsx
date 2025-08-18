@@ -2,9 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import React, { useState } from "react";
 
-import { Dimensions, Image, ImageBackground, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, FlatList, Image, ImageBackground, Text, TouchableOpacity, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
@@ -36,6 +37,45 @@ export default function Index() {
       image: "https://images.unsplash.com/photo-1588170975164-67f7a6127d91?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHNhZmUlMjBjaXR5JTIwY29ubmVjdGlvbnxlbnwwfDB8MHx8fDI%3D",
     },
   ];
+  const reports = [
+  {
+    id: "1",
+    title: "Vulgar content",
+    icon: "alert-circle", // warning icon
+    location: "Park Street, Kolkata",
+    distance: "0.3 km",
+  },
+  {
+    id: "2",
+    title: "Blocking road view",
+    icon: "eye-off", // blocked visibility
+    location: "Esplanade, Kolkata",
+    distance: "0.8 km",
+  },
+  {
+    id: "3",
+    title: "Billboard stand broken",
+    icon: "construct", // tools / broken
+    location: "Salt Lake, Kolkata",
+    distance: "1.2 km",
+  },
+  {
+    id: "4",
+    title: "Unauthorized billboard",
+    icon: "ban", // prohibition
+    location: "Gariahat, Kolkata",
+    distance: "2.1 km",
+  },
+  {
+    id: "5",
+    title: "Lights not working",
+    icon: "bulb", // bulb/light
+    location: "New Town, Kolkata",
+    distance: "3.4 km",
+  },
+];
+
+
 
   const progress = useSharedValue<number>(0);
   const ref = React.useRef<ICarouselInstance>(null);
@@ -49,9 +89,9 @@ export default function Index() {
 
 
   return (
-    <View className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
-      <View className="flex-row items-center justify-between px-8 py-8">
+      <View className="flex-row items-center justify-between px-8 mb-4">
         <View>
           <Text className="text-3xl text-black font-montserratBold">
             Hello, {name}!
@@ -70,7 +110,7 @@ export default function Index() {
       </View>
 
       {/* Carousel */}
-      <View className="px-6 mb-6 gap-2">
+      <View className="px-6 mb-4">
         <Carousel
           ref={ref}
           width={width-48}
@@ -106,10 +146,6 @@ export default function Index() {
             </View>
           )}
         />
-
-
-
-
         {/* Pagination */}
         <Pagination.Custom
           progress={progress}
@@ -148,6 +184,41 @@ export default function Index() {
           }}
         />
       </View>
-    </View>
+
+      {/* Recent Reports Section */}
+      <View className="px-6 flex-1 mb-10">
+        <Text className="text-xl font-montserratBold mb-3">
+          Reports By Others
+        </Text>
+        <FlatList
+          data={reports}
+          showsVerticalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View className="flex-row justify-between items-center bg-white rounded-xl px-4 py-3 mb-4 mx-2 shadow-md shadow-purple-500">
+              <View className="flex-row items-center">
+                <Ionicons
+                  name={item.icon as any}
+                  size={22}
+                  color={"#8B5CF6"}
+                  style={{ marginRight: 10 }}
+                />
+                <View>
+                  <Text className="font-montserratBold text-black">
+                    {item.title}
+                  </Text>
+                  <Text className="font-montserrat text-gray-500 text-sm">
+                    {item.location}
+                  </Text>
+                </View>
+              </View>
+              <Text className="font-montserrat text-gray-600 text-sm">
+                {item.distance}
+              </Text>
+            </View>
+          )}
+        />
+      </View>
+    </SafeAreaView>
   );
 }

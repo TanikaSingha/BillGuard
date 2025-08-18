@@ -13,6 +13,12 @@ export default function RootLayout() {
         }}
       />
       <Stack.Screen
+        name="(modals)"
+        options={{
+          headerShown: false, // hides the title bar for (tabs)
+        }}
+      />
+      <Stack.Screen
         name="camera"            // <-- app/camera.tsx
         options={{ presentation: "modal", headerShown: false }}
       />
