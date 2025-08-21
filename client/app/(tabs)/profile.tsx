@@ -3,6 +3,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import React from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import AnimatedScreenWrapper from "../components/ScreenWrapper";
 
 export default function Profile() {
   const [fontsLoaded] = useFonts({
@@ -21,6 +22,7 @@ export default function Profile() {
   };
 
   return (
+    <AnimatedScreenWrapper>
     <ScrollView className="flex-1 bg-white">
       <View className="flex-row items-center justify-between px-6 py-3 border-b border-gray-200">
         <Text className="font-montserratBold text-xl text-gray-900">Profile</Text>
@@ -92,6 +94,7 @@ export default function Profile() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </AnimatedScreenWrapper>
   );
 }
 
