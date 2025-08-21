@@ -5,7 +5,11 @@ import { useFonts } from "expo-font";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+<<<<<<< HEAD
 import { useDispatch, useSelector } from "react-redux";
+=======
+import AnimatedScreenWrapper from "../components/ScreenWrapper";
+>>>>>>> upstream/main
 
 export default function Profile() {
   const [fontsLoaded] = useFonts({
@@ -24,6 +28,7 @@ export default function Profile() {
   };
 
   return (
+    <AnimatedScreenWrapper>
     <ScrollView className="flex-1 bg-white">
       <View className="flex-row items-center justify-between px-6 py-3 border-b border-gray-200">
         <Text className="font-montserratBold text-xl text-gray-900">
@@ -122,6 +127,7 @@ export default function Profile() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </AnimatedScreenWrapper>
   );
 }
 

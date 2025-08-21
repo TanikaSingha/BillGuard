@@ -6,6 +6,7 @@ import { Dimensions, FlatList, Image, ImageBackground, Text, TouchableOpacity, V
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AnimatedScreenWrapper from "../components/ScreenWrapper";
 
 const { width } = Dimensions.get("window");
 
@@ -89,6 +90,7 @@ export default function Index() {
 
 
   return (
+    <AnimatedScreenWrapper>
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
       <View className="flex-row items-center justify-between px-8 mb-4">
@@ -114,7 +116,7 @@ export default function Index() {
         <Carousel
           ref={ref}
           width={width-48}
-          height={220}
+          height={205}
           data={steps}
           loop={true}
           onProgressChange={progress}
@@ -220,5 +222,6 @@ export default function Index() {
         />
       </View>
     </SafeAreaView>
+    </AnimatedScreenWrapper>
   );
 }
