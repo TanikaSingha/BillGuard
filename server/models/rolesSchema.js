@@ -22,5 +22,4 @@ const adminSchema = new mongoose.Schema({
 const NormalUser = User.discriminator("NormalUser", normalUserSchema);
 const AdminUser = User.discriminator("AdminUser", adminSchema);
 
-
 module.exports = { NormalUser, AdminUser };

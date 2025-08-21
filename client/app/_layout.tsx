@@ -1,29 +1,15 @@
-import { Stack } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import './global.css';
+import { Slot } from "expo-router";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Provider } from "react-redux";
+import { store } from "../store/store";
+import "./global.css";
 
 export default function RootLayout() {
   return (
-    <SafeAreaView style={{flex:1,backgroundColor:"#fff"}} edges={["top","bottom"]}>
-      <Stack>
-      <Stack.Screen
-        name="(tabs)"
-        options={{
-          headerShown: false, // hides the title bar for (tabs)
-        }}
-      />
-      <Stack.Screen
-        name="(modals)"
-        options={{
-          headerShown: false, // hides the title bar for (tabs)
-        }}
-      />
-      <Stack.Screen
-        name="camera"            // <-- app/camera.tsx
-        options={{ presentation: "modal", headerShown: false }}
-      />
-    </Stack>
-    </SafeAreaView>
-    
+    <Provider store={store}>
+      <SafeAreaProvider>
+        <Slot></Slot>
+      </SafeAreaProvider>
+    </Provider>
   );
 }
