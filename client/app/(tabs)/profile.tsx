@@ -5,11 +5,8 @@ import { useFonts } from "expo-font";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
-<<<<<<< HEAD
 import { useDispatch, useSelector } from "react-redux";
-=======
 import AnimatedScreenWrapper from "../components/ScreenWrapper";
->>>>>>> upstream/main
 
 export default function Profile() {
   const [fontsLoaded] = useFonts({
