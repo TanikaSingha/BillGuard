@@ -1,9 +1,11 @@
 import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ThemeProvider from "./context/ThemeContext";
 import './global.css';
 
 export default function RootLayout() {
   return (
+    <ThemeProvider>
     <SafeAreaView style={{flex:1,backgroundColor:"#fff"}} edges={["top","bottom"]}>
       <Stack>
       <Stack.Screen
@@ -24,6 +26,7 @@ export default function RootLayout() {
       />
     </Stack>
     </SafeAreaView>
+    </ThemeProvider>
     
   );
 }
