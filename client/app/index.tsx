@@ -1,3 +1,4 @@
+import { refreshLocation } from "@/lib/Slices/locationSlice";
 import { fetchUser } from "@/lib/Slices/userSlice";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
@@ -12,6 +13,7 @@ export default function Index() {
 
   useEffect(() => {
     dispatch(fetchUser());
+    dispatch(refreshLocation());
   }, [dispatch]);
 
   useEffect(() => {
