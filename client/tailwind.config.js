@@ -7,13 +7,27 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-      primary: "#1E40AF",   // Deep blue
-      secondary: "#F59E0B", // Warm orange
-      background: "#F9FAFB",
-    },
+        background: "#F9FAFB", // app background
+        surface: "#FFFFFF",    // cards/containers
+        text: {
+          primary: "#1F2937",  // near black
+          secondary: "#6B7280",// medium gray
+          disabled: "#9CA3AF", // light gray
+        },
+        primary: {
+          main: "#6C4FE0",     // brand purple
+          light: "#A78BFA",
+          dark: "#4C1D95",
+        },
+        success: "#16A34A",
+        error: "#EF4444",
+        warning: "#F59E0B",
+        border: "#E5E7EB",
+      },
     fontFamily: {
-        montserrat: ["Montserrat"],       // Regular
-        montserratBold: ["Montserrat-Bold"], // Bold
+        montserrat: ["Montserrat"], // regular
+      montserratBold: ["Montserrat-Bold"], // bold
+      montserratSemiBold: ["Montserrat-SemiBold"], // semibold
       },
     },
   },

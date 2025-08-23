@@ -3,6 +3,13 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import * as SecureStore from "expo-secure-store";
 import apiRequest from "../utils/apiRequest";
 
+interface NormalUserData {
+  xp: number;
+  level: number;
+  reportsSubmitted: number;
+  reportsVerified: number;
+  badges: string[];
+}
 interface User {
   _id: string;
   name: string;
@@ -10,6 +17,7 @@ interface User {
   email: string;
   avatar?: string;
   role?: "NormalUser" | "AdminUser";
+  normalUser?:NormalUserData;
 }
 
 interface UserState {

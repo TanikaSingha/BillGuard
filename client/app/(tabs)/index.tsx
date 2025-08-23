@@ -1,25 +1,26 @@
+import { RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import React, { useState } from "react";
-
 import { Dimensions, FlatList, Image, ImageBackground, Text, TouchableOpacity, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AnimatedScreenWrapper from "../components/ScreenWrapper";
+import { useSelector } from "react-redux";
 
 const { width } = Dimensions.get("window");
 
 export default function Index() {
   const [fontsLoaded] = useFonts({
     "Montserrat": require("../../assets/fonts/Montserrat-Regular.ttf"),
-    "Montserrat-Bold":require("../../assets/fonts/Montserrat-Bold.ttf") // adjust path
+    "Montserrat-Bold":require("../../assets/fonts/Montserrat-Bold.ttf") 
   });
   const [location, setLocation] = useState("Kolkata");
   const [name, setName] = useState("Tanika");
   const [profilePicURL, setProfilePicURL] = useState(
     "https://i.pravatar.cc/100"
   );
+  const {user}=useSelector((state:RootState)=>state.user);
 
   const steps = [
     {
@@ -90,24 +91,24 @@ export default function Index() {
 
 
   return (
-    <AnimatedScreenWrapper>
+
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
       <View className="flex-row items-center justify-between px-8 mb-4">
         <View>
-          <Text className="text-3xl text-black font-montserratBold">
-            Hello, {name}!
+          <Text className="text-3xl text-text-primary font-montserratBold">
+            Hello, {user?.name.split(" ")[0]}!
           </Text>
           <TouchableOpacity className="flex-row items-center mt-1">
-            <Text className="text-md mr-1 text-gray-500 font-montserrat">
+            <Text className="text-md mr-1 text-text-secondary font-montserrat">
               {location}
             </Text>
-            <Ionicons name="chevron-down" size={18} color="#666666ff" />
+            <Ionicons name="chevron-down" size={18} color="#6B7280" />
           </TouchableOpacity>
         </View>
         <Image
-          source={{ uri: profilePicURL }}
-          className="w-14 h-14 rounded-full border-2 border-purple-500"
+          source={require("../../assets/images/profile.png")}
+          className="w-14 h-14 rounded-full border-2 border-primary-main"
         />
       </View>
 
@@ -124,7 +125,7 @@ export default function Index() {
           <View style={{ marginHorizontal: 6 }}>
             <ImageBackground
               source={{ uri: item.image }}
-              className="w-full h-full rounded-2xl overflow-hidden"
+              className="w-full h-full rounded-2xl overflow-hidden border border-2 border-border "
               resizeMode="cover"
             >
               {/* Overlay to make text readable */}
@@ -140,7 +141,7 @@ export default function Index() {
                 <Text className="text-white text-xl font-montserratBold">
                   {item.title}
                 </Text>
-                <Text className="text-gray-200 text-sm font-montserrat mt-1">
+                <Text className="text-white text-sm font-montserrat mt-1">
                   {item.desc}
                 </Text>
               </View>
@@ -155,13 +156,13 @@ export default function Index() {
           size={10}
           dotStyle={{
             borderRadius: 16,
-            backgroundColor: "#ccc",
+            backgroundColor: "#A78BFA",
           }}
           activeDotStyle={{
             borderRadius: 8,
             width: 30,
             height: 10,
-            backgroundColor: "#6D28D9", // purple
+            backgroundColor: "#6C4FE0", // purple
           }}
           containerStyle={{
             gap: 6,
@@ -189,7 +190,7 @@ export default function Index() {
 
       {/* Recent Reports Section */}
       <View className="px-6 flex-1 mb-10">
-        <Text className="text-xl font-montserratBold mb-3">
+        <Text className="text-xl font-montserratBold mb-3 text-text-primary">
           Reports By Others
         </Text>
         <FlatList
@@ -197,24 +198,24 @@ export default function Index() {
           showsVerticalScrollIndicator={false}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View className="flex-row justify-between items-center bg-white rounded-xl px-4 py-3 mb-4 mx-2 shadow-md shadow-purple-500">
+            <View className="border border-2 border-border flex-row justify-between items-center bg-surface rounded-xl px-3 py-3 mb-4 mx-2 shadow-md shadow-primary-main">
               <View className="flex-row items-center">
                 <Ionicons
                   name={item.icon as any}
                   size={22}
-                  color={"#8B5CF6"}
+                  color={"#6C4FE0"}
                   style={{ marginRight: 10 }}
                 />
                 <View>
-                  <Text className="font-montserratBold text-black">
+                  <Text className="font-montserratBold text-text-primary">
                     {item.title}
                   </Text>
-                  <Text className="font-montserrat text-gray-500 text-sm">
+                  <Text className="font-montserrat text-text-secondary text-sm">
                     {item.location}
                   </Text>
                 </View>
               </View>
-              <Text className="font-montserrat text-gray-600 text-sm">
+              <Text className="font-montserrat text-text-primary text-sm">
                 {item.distance}
               </Text>
             </View>
@@ -222,6 +223,6 @@ export default function Index() {
         />
       </View>
     </SafeAreaView>
-    </AnimatedScreenWrapper>
+
   );
 }

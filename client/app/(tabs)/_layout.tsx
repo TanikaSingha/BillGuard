@@ -1,4 +1,4 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Tabs, router } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -14,10 +14,10 @@ const _layout = () => {
           height: 55,
           position: "absolute",
           borderRadius: 30,
-          backgroundColor: "#1e1e1e",
+          backgroundColor: "#6C4FE0",
         },
-        tabBarActiveTintColor: "#fff", // active icon color white
-        tabBarInactiveTintColor: "gray", // inactive icon gray
+        tabBarActiveTintColor: "#FFFFFF", // active icon color white
+        tabBarInactiveTintColor: "#A78BFA", // inactive icon gray
         tabBarIconStyle: {
           margin: 8,
         },
@@ -40,7 +40,7 @@ const _layout = () => {
         }}
       />
       <Tabs.Screen
-        name="uploads"
+        name="reports"
         options={{
           tabBarIcon: ({ focused, color, size }) => (
             <View
@@ -49,7 +49,7 @@ const _layout = () => {
                 focused && styles.iconWrapperActive,
               ]}
             >
-              <Feather name="upload" size={size} color={color} />
+              <Ionicons name="document-text-outline" size={size} color={color} />
             </View>
           ),
           headerShown: false,
@@ -60,7 +60,7 @@ const _layout = () => {
         options={{
           title: "Camera",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="camera-outline" size={size} color={"#c8b2daff"} />
+            <Ionicons name="camera-outline" size={size} color={"#FFFFFF"} />
           ),
           // Custom floating button
           tabBarButton: ({ children }) => (
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     width: 65,
     height: 65,
     borderRadius: 32.5,
-    backgroundColor: "#6c3ef4", // purple
+    backgroundColor: "#A78BFA", // purple
     justifyContent: "center",
     alignItems: "center",
   },
@@ -132,6 +132,6 @@ const styles = StyleSheet.create({
     padding:8,
   },
   iconWrapperActive: {
-    backgroundColor: "#5f5e5eff", // lighter gray highlight for active tab
+    backgroundColor: "#A78BFA", // lighter gray highlight for active tab
   },
 });
