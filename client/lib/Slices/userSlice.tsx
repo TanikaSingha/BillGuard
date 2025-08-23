@@ -103,6 +103,25 @@ export const logoutUser = createAsyncThunk<void, void>(
   }
 );
 
+export const uploadUserImage = createAsyncThunk<
+  string,
+  FormData,
+  { rejectValue: string }
+>("user/uploadUserImage", async (formData, { rejectWithValue }) => {
+  try {
+    const res = await apiRequest.post("/user/uploadImage", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${await SecureStore.getItemAsync("authToken")}`,
+      },
+    });
+    console.log("Uploaded Image URL:", res.data.url);
+    return res.data.url;
+  } catch (err: any) {
+    return rejectWithValue(err.response?.data?.message || err.message);
+  }
+});
+
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -163,6 +182,17 @@ const userSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Failed to fetch user!";
+      })
+      .addCase(uploadUserImage.fulfilled, (state, action) => {
+        state.status = "succeeded";
+      })
+      .addCase(uploadUserImage.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || "Failed to upload image!";
+      })
+      .addCase(uploadUserImage.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
       });
   },
 });

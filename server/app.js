@@ -2,8 +2,10 @@ require("dotenv").config();
 const express = require("express");
 const connectDB = require("./database/connectDB");
 const authRouter = require("./routes/authRouter");
+const userRouter = require("./routes/userRouter");
 const errorHandler = require("./middleware/errorHandler");
 const cors = require("cors");
+const aiModelRouter = require("./routes/aiModelRouter");
 
 const app = express();
 app.use(express.json());
@@ -14,6 +16,8 @@ app.use(
   })
 );
 app.use("/api/auth", authRouter);
+app.use("/api/user", userRouter);
+app.use("/api/model", aiModelRouter);
 app.use(errorHandler);
 const port = process.env.PORT || 3000;
 
