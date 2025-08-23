@@ -1,256 +1,19 @@
-// import { Ionicons } from '@expo/vector-icons';
-// import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
-// import * as ImagePicker from 'expo-image-picker';
-// import { useRef, useState } from 'react';
-// import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-// import Report from './(modals)/report';
-
-// export default function Camera() {
-//   const [facing, setFacing] = useState<CameraType>('back');
-//   const [permission, requestPermission] = useCameraPermissions();
-//   const [image, setImage] = useState<string | null>(null);
-//   const [showCamera, setShowCamera] = useState(true);
-//   const cameraRef = useRef<CameraView>(null);
-//   const [showReportModal, setShowReportModal] = useState(false);
-//   const [capturedImageUri, setCapturedImageUri] = useState<string>('');
-
-//   const requestCameraPermission = async () => {
-//     if (!permission) return;
-//     if (!permission.granted) {
-//       const result = await requestPermission();
-//       if (!result.granted) {
-//         Alert.alert('Permission Required', 'Camera permission is required to use this feature');
-//         setShowCamera(false);
-//       }
-//     }
-//   };
-
-//   const toggleCameraFacing = () => setFacing(current => (current === 'back' ? 'front' : 'back'));
-
-//   const takePicture = async () => {
-//     if (cameraRef.current) {
-//       try {
-//         const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
-//         if (photo) {
-//           setImage(photo.uri);
-//           setShowCamera(false);
-//         }
-//       } catch {
-//         Alert.alert('Error', 'Failed to take picture');
-//       }
-//     }
-//   };
-
-//   const openGallery = async () => {
-//     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-//     if (!permission.granted) {
-//       Alert.alert('Permission Required', 'Gallery permission is required to access photos');
-//       return;
-//     }
-
-//     const result = await ImagePicker.launchImageLibraryAsync({
-//       mediaTypes: ['images'],
-//       allowsEditing: false,
-//       quality: 1,
-//     });
-
-//     if (!result.canceled) {
-//       setImage(result.assets[0].uri);
-//       setShowCamera(false);
-//     }
-//   };
-
-//   const retakePhoto = () => {
-//     setImage(null);
-//     setShowCamera(true);
-//     requestCameraPermission();
-//   };
-
-//   const proceed = () => {
-//     if (image) {
-//       setCapturedImageUri(image);
-//       setShowReportModal(true);
-//     }
-//   };
-
-//   const handleReportClose = () => {
-//     setShowReportModal(false);
-//     // Reset to camera view after closing report
-//     setImage(null);
-//     setShowCamera(true);
-//     setCapturedImageUri('');
-//   };
-
-//   if (!permission) {
-//     return (
-//       <View style={styles.loadingContainer}>
-//         <Text style={styles.loadingText}>Loading camera...</Text>
-//       </View>
-//     );
-//   }
-
-//   if (!permission.granted) {
-//     requestCameraPermission();
-//     return (
-//       <View style={styles.loadingContainer}>
-//         <Text style={styles.loadingText}>Requesting camera permission...</Text>
-//       </View>
-//     );
-//   }
-
-//   if (image) {
-//     return (
-//       <View style={styles.previewContainer}>
-//         <Image source={{ uri: image }} style={styles.preview} />
-//         <View style={styles.previewControls}>
-//           <TouchableOpacity style={styles.retakeButton} onPress={retakePhoto}>
-//             <Ionicons name="camera" size={20} color="#666" />
-//             <Text style={styles.retakeButtonText}>Retake</Text>
-//           </TouchableOpacity>
-//           <TouchableOpacity style={styles.proceedButton} onPress={proceed}>
-//             <Ionicons name="checkmark" size={20} color="white" />
-//             <Text style={styles.proceedButtonText}>Proceed</Text>
-//           </TouchableOpacity>
-//         </View>
-
-//         {/* Report Modal */}
-//         <Report
-//           visible={showReportModal}
-//           onClose={handleReportClose}
-//           imageUri={capturedImageUri}
-//         />
-//       </View>
-//     );
-//   }
-
-//   if (showCamera) {
-//     return (
-//       <View style={styles.cameraContainer}>
-//         <CameraView style={styles.camera} facing={facing} ref={cameraRef}>
-//           <View style={styles.bottomControls}>
-//             <TouchableOpacity style={styles.galleryButton} onPress={openGallery}>
-//               <View style={styles.galleryPreview}>
-//                 <Ionicons name="images" size={24} color="white" />
-//               </View>
-//             </TouchableOpacity>
-
-//             <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
-//               <View style={styles.captureButtonInner} />
-//             </TouchableOpacity>
-
-//             <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
-//               <Ionicons name="camera-reverse" size={24} color="white" />
-//             </TouchableOpacity>
-//           </View>
-//         </CameraView>
-//       </View>
-//     );
-//   }
-
-//   return (
-//     <View style={styles.loadingContainer}>
-//       <Text style={styles.loadingText}>Camera not available</Text>
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   loadingContainer: {
-//     flex: 1,
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     backgroundColor: '#000',
-//   },
-//   loadingText: {
-//     fontSize: 16,
-//     color: 'white',
-//     fontWeight: '500',
-//   },
-//   cameraContainer: { flex: 1, backgroundColor: '#000' },
-//   camera: { flex: 1 },
-//   bottomControls: {
-//     position: 'absolute',
-//     bottom: 0,
-//     left: 0,
-//     right: 0,
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//     paddingHorizontal: 40,
-//     paddingBottom: 50,
-//     paddingTop: 30,
-//   },
-//   galleryButton: { width: 50, height: 50, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-//   galleryPreview: {
-//     width: 40,
-//     height: 40,
-//     borderRadius: 8,
-//     backgroundColor: 'rgba(255,255,255,0.2)',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     borderWidth: 2,
-//     borderColor: 'rgba(255,255,255,0.6)',
-//   },
-//   captureButton: {
-//     width: 80,
-//     height: 80,
-//     borderRadius: 40,
-//     backgroundColor: 'white',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     borderWidth: 4,
-//     borderColor: 'rgba(255,255,255,0.8)',
-//   },
-//   captureButtonInner: { width: 65, height: 65, borderRadius: 32.5, backgroundColor: 'white' },
-//   flipButton: {
-//     width: 50,
-//     height: 50,
-//     borderRadius: 25,
-//     backgroundColor: 'rgba(0,0,0,0.4)',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     borderWidth: 1,
-//     borderColor: 'rgba(255,255,255,0.2)',
-//   },
-//   previewContainer: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
-//   preview: { width: '95%', height: '80%', borderRadius: 15, marginBottom: 30 },
-//   previewControls: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 20, paddingHorizontal: 20 },
-//   retakeButton: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     paddingHorizontal: 25,
-//     paddingVertical: 12,
-//     borderRadius: 25,
-//     backgroundColor: 'rgba(255,255,255,0.9)',
-//     borderWidth: 1,
-//     borderColor: '#e0e0e0',
-//     gap: 8,
-//   },
-//   retakeButtonText: { fontSize: 16, fontWeight: '600', color: '#666' },
-//   proceedButton: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     paddingHorizontal: 30,
-//     paddingVertical: 12,
-//     borderRadius: 25,
-//     backgroundColor: '#6c3ef4',
-//     gap: 8,
-//   },
-//   proceedButtonText: { fontSize: 16, fontWeight: '600', color: 'white' },
-// });
-
 import { setExifData } from "@/lib/Slices/reportSlice";
 import { uploadUserImage } from "@/lib/Slices/userSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
+import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
+import * as ScreenOrientation from "expo-screen-orientation";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   Image,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -262,14 +25,30 @@ export default function Camera() {
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [image, setImage] = useState<string | null>(null);
+  const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
   const [showCamera, setShowCamera] = useState(true);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadedImageURL, setUploadedImageURL] = useState<string | null>(null);
+  const [cameraRatio, setCameraRatio] = useState<string | undefined>(undefined);
 
   const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { status, error } = useSelector((state: RootState) => state.user);
+
+  // Unlock orientation while camera is open
+  useEffect(() => {
+    (async () => {
+      try {
+        await ScreenOrientation.unlockAsync();
+      } catch {}
+    })();
+    return () => {
+      ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT_UP
+      ).catch(() => {});
+    };
+  }, []);
 
   useEffect(() => {
     if (!permission) return;
@@ -279,18 +58,60 @@ export default function Camera() {
   const toggleCameraFacing = () =>
     setFacing((current) => (current === "back" ? "front" : "back"));
 
+  const onCameraReady = () => {
+    if (Platform.OS !== "android") return;
+
+    try {
+      const { width, height } = Dimensions.get("window");
+      const screenRatio = Math.max(width, height) / Math.min(width, height);
+
+      const desiredRatio =
+        Math.abs(16 / 9 - screenRatio) < Math.abs(4 / 3 - screenRatio)
+          ? "16:9"
+          : "4:3";
+
+      setCameraRatio(desiredRatio as any);
+    } catch {
+      // no-op
+    }
+  };
+
+  const normalizeAndSet = async (uri: string) => {
+    try {
+      const normalized = await ImageManipulator.manipulateAsync(uri, [], {
+        compress: 1,
+        format: ImageManipulator.SaveFormat.JPEG,
+      });
+      await new Promise<void>((resolve, reject) => {
+        Image.getSize(
+          normalized.uri,
+          (w, h) => {
+            setImageAspectRatio(w / h);
+            resolve();
+          },
+          (e) => reject(e)
+        );
+      });
+      setImage(normalized.uri);
+      setShowCamera(false);
+    } catch {
+      setImage(uri);
+      setImageAspectRatio(null);
+      setShowCamera(false);
+    }
+  };
+
   const takePicture = async () => {
     if (!cameraRef.current) return;
     try {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 1,
         exif: true,
+        skipProcessing: false,
       });
       if (photo) {
-        setImage(photo.uri);
-        setShowCamera(false);
-        console.log(photo.exif);
-        dispatch(setExifData(photo.exif || null));
+        await normalizeAndSet(photo.uri);
+        dispatch(setExifData(photo.exif || {}));
       }
     } catch {
       Alert.alert("Error", "Failed to take picture");
@@ -299,24 +120,21 @@ export default function Camera() {
 
   const openGallery = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: false,
       quality: 1,
       exif: true,
     });
 
     if (!result.canceled) {
-      if (result.assets[0].exif) {
-        console.log(result.assets[0].exif);
-        dispatch(setExifData(result.assets[0].exif));
-      }
-      setImage(result.assets[0].uri);
-      setShowCamera(false);
+      await normalizeAndSet(result.assets[0].uri);
+      dispatch(setExifData(result.assets[0].exif || {}));
     }
   };
 
   const retakePhoto = () => {
     setImage(null);
+    setImageAspectRatio(null);
     setShowCamera(true);
   };
 
@@ -328,21 +146,21 @@ export default function Camera() {
       name: `photo${Date.now()}.jpg`,
       type: "image/jpeg",
     } as any);
+
     try {
       const url = await dispatch(uploadUserImage(formData)).unwrap();
       setUploadedImageURL(url);
       setUploadSuccess(true);
     } catch (err: any) {
-      Alert.alert("Upload Failed", err);
+      Alert.alert("Upload Failed", err?.message || "Something went wrong");
     }
   };
 
-  // ✅ Success screen comes first
+  // ✅ Success screen
   if (uploadSuccess) {
     return (
       <View style={styles.previewContainer}>
         <Text style={styles.successText}>✅ Image uploaded successfully!</Text>
-
         <View style={styles.successControls}>
           <TouchableOpacity
             style={styles.proceedButton}
@@ -351,7 +169,9 @@ export default function Camera() {
               setImage(null);
               setShowCamera(true);
               router.push(
-                `/ReportSubmission?imageUrl=${encodeURIComponent(uploadedImageURL ?? "")}`
+                `/ReportSubmission?imageUrl=${encodeURIComponent(
+                  uploadedImageURL ?? ""
+                )}`
               );
             }}
           >
@@ -380,7 +200,13 @@ export default function Camera() {
   if (showCamera) {
     return (
       <View style={styles.cameraContainer}>
-        <CameraView style={styles.camera} facing={facing} ref={cameraRef}>
+        <CameraView
+          style={styles.camera}
+          facing={facing}
+          ref={cameraRef}
+          onCameraReady={onCameraReady}
+          ratio={Platform.OS === "android" ? (cameraRatio as any) : undefined}
+        >
           <View style={styles.bottomControls}>
             <TouchableOpacity
               style={styles.galleryButton}
@@ -412,7 +238,18 @@ export default function Camera() {
   if (image) {
     return (
       <View style={styles.previewContainer}>
-        <Image source={{ uri: image }} style={styles.preview} />
+        <Image
+          source={{ uri: image }}
+          style={[
+            styles.preview,
+            imageAspectRatio
+              ? imageAspectRatio > 1
+                ? { width: "95%", aspectRatio: imageAspectRatio }
+                : { width: "95%", height: "80%" }
+              : { width: "95%", height: "80%" },
+          ]}
+          resizeMode="contain"
+        />
         <View style={styles.previewControls}>
           <TouchableOpacity style={styles.retakeButton} onPress={retakePhoto}>
             <Ionicons name="camera" size={20} color="#666" />
@@ -449,34 +286,29 @@ export default function Camera() {
 }
 
 const styles = StyleSheet.create({
+  cameraContainer: { flex: 1, backgroundColor: "#000" },
+  camera: { flex: 1 },
   loadingContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#000",
   },
-  loadingText: {
-    fontSize: 16,
-    color: "white",
-    fontWeight: "500",
-  },
+  loadingText: { fontSize: 16, color: "white", fontWeight: "500" },
   successText: {
-    fontSize: 18, // slightly bigger for emphasis
-    color: "#28a745", // nicer green (#28a745 is bootstrap success green)
-    fontWeight: "600", // slightly bolder
-    textAlign: "center", // center the text nicely
-    marginBottom: 24, // add space below text for buttons
+    fontSize: 18,
+    color: "#28a745",
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 24,
   },
-
   successControls: {
     flexDirection: "row",
-    justifyContent: "space-around", // space buttons evenly
+    justifyContent: "space-around",
     alignItems: "center",
     paddingHorizontal: 20,
-    gap: 16, // a bit tighter than before
+    gap: 16,
   },
-  cameraContainer: { flex: 1, backgroundColor: "#000" },
-  camera: { flex: 1 },
   bottomControls: {
     position: "absolute",
     bottom: 0,
@@ -495,16 +327,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
-  },
-  galleryPreview: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.6)",
   },
   captureButton: {
     width: 80,
@@ -538,7 +360,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  preview: { width: "95%", height: "80%", borderRadius: 15, marginBottom: 30 },
+  preview: {
+    padding: 30,
+    marginBottom: 10,
+  },
   previewControls: {
     flexDirection: "row",
     justifyContent: "center",

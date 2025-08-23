@@ -201,7 +201,7 @@ const RegisterScreen = () => {
         </View>
 
         {/* Submit Button */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           className={`w-full rounded-full py-4 items-center mb-2 ${
             status === "loading"
               ? "bg-[#9CA3AF]"
@@ -209,6 +209,24 @@ const RegisterScreen = () => {
           }`}
           disabled={status === "loading"}
           onPress={handleSubmit}
+        >
+          {status === "loading" ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text className="text-center text-white font-montserratBold tracking-widest">
+              Sign Up
+            </Text>
+          )}
+        </TouchableOpacity> */}
+
+        <TouchableOpacity
+          onPress={handleSubmit}
+          disabled={status === "loading"}
+          className={`w-full rounded-full py-4 items-center mb-6 ${
+            status === "loading"
+              ? "bg-gray-400"
+              : "bg-primary-main active:bg-primary-main"
+          }`}
         >
           {status === "loading" ? (
             <ActivityIndicator color="#fff" />
