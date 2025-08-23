@@ -239,6 +239,7 @@
 //   proceedButtonText: { fontSize: 16, fontWeight: '600', color: 'white' },
 // });
 
+import { setExifData } from "@/lib/Slices/reportSlice";
 import { uploadUserImage } from "@/lib/Slices/userSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -281,10 +282,15 @@ export default function Camera() {
   const takePicture = async () => {
     if (!cameraRef.current) return;
     try {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 1,
+        exif: true,
+      });
       if (photo) {
         setImage(photo.uri);
         setShowCamera(false);
+        console.log(photo.exif);
+        dispatch(setExifData(photo.exif || null));
       }
     } catch {
       Alert.alert("Error", "Failed to take picture");
@@ -296,9 +302,14 @@ export default function Camera() {
       mediaTypes: ["images"],
       allowsEditing: false,
       quality: 1,
+      exif: true,
     });
 
     if (!result.canceled) {
+      if (result.assets[0].exif) {
+        console.log(result.assets[0].exif);
+        dispatch(setExifData(result.assets[0].exif));
+      }
       setImage(result.assets[0].uri);
       setShowCamera(false);
     }
@@ -317,7 +328,6 @@ export default function Camera() {
       name: `photo${Date.now()}.jpg`,
       type: "image/jpeg",
     } as any);
-
     try {
       const url = await dispatch(uploadUserImage(formData)).unwrap();
       setUploadedImageURL(url);
