@@ -239,7 +239,6 @@
 //   proceedButtonText: { fontSize: 16, fontWeight: '600', color: 'white' },
 // });
 
-import { refreshLocation } from "@/lib/Slices/locationSlice";
 import { uploadUserImage } from "@/lib/Slices/userSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -264,12 +263,12 @@ export default function Camera() {
   const [image, setImage] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(true);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadedImageURL, setUploadedImageURL] = useState<string | null>(null);
 
   const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { status, error } = useSelector((state: RootState) => state.user);
-  const { location } = useSelector((state: RootState) => state.location);
 
   useEffect(() => {
     if (!permission) return;
@@ -311,7 +310,7 @@ export default function Camera() {
   };
 
   const submitPhoto = async () => {
-    if (!image || !location) return;
+    if (!image) return;
     const formData = new FormData();
     formData.append("image", {
       uri: image,
@@ -320,8 +319,8 @@ export default function Camera() {
     } as any);
 
     try {
-      await dispatch(uploadUserImage(formData)).unwrap();
-      await dispatch(refreshLocation());
+      const url = await dispatch(uploadUserImage(formData)).unwrap();
+      setUploadedImageURL(url);
       setUploadSuccess(true);
     } catch (err: any) {
       Alert.alert("Upload Failed", err);
@@ -332,10 +331,7 @@ export default function Camera() {
   if (uploadSuccess) {
     return (
       <View style={styles.previewContainer}>
-        <Text style={styles.successText}>
-          ✅ Image uploaded successfully from {location?.coords.latitude},{" "}
-          {location?.coords.longitude}
-        </Text>
+        <Text style={styles.successText}>✅ Image uploaded successfully!</Text>
 
         <View style={styles.successControls}>
           <TouchableOpacity
@@ -344,7 +340,9 @@ export default function Camera() {
               setUploadSuccess(false);
               setImage(null);
               setShowCamera(true);
-              router.push("/ReportSubmission");
+              router.push(
+                `/ReportSubmission?imageUrl=${encodeURIComponent(uploadedImageURL ?? "")}`
+              );
             }}
           >
             <Ionicons name="document-text" size={20} color="white" />
@@ -453,16 +451,19 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   successText: {
-    fontSize: 16,
-    color: "green",
-    fontWeight: "500",
+    fontSize: 18, // slightly bigger for emphasis
+    color: "#28a745", // nicer green (#28a745 is bootstrap success green)
+    fontWeight: "600", // slightly bolder
+    textAlign: "center", // center the text nicely
+    marginBottom: 24, // add space below text for buttons
   },
+
   successControls: {
     flexDirection: "row",
-    justifyContent: "center",
+    justifyContent: "space-around", // space buttons evenly
     alignItems: "center",
-    gap: 20,
     paddingHorizontal: 20,
+    gap: 16, // a bit tighter than before
   },
   cameraContainer: { flex: 1, backgroundColor: "#000" },
   camera: { flex: 1 },

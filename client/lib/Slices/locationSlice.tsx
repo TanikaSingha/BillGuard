@@ -14,6 +14,7 @@ export const refreshLocation = createAsyncThunk(
       const loc = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
       });
+      console.log("Fetched Location:", loc);
       return loc;
     } catch (err) {
       return rejectWithValue("Failed to fetch location");

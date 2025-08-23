@@ -107,6 +107,7 @@ export const uploadUserImage = createAsyncThunk<
         Authorization: `Bearer ${await SecureStore.getItemAsync("authToken")}`,
       },
     });
+    console.log("Uploaded Image URL:", res.data.url);
     return res.data.url;
   } catch (err: any) {
     return rejectWithValue(err.response?.data?.message || err.message);

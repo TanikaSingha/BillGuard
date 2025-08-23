@@ -6,8 +6,9 @@ const reportSchema = new mongoose.Schema({
     type: String,
     required: [true, "Image URL is required!"],
   },
-  videoURL: {
+  annotatedURL: {
     type: String,
+    required: [true, "Annotated URL is required!"],
   },
   //billboard information
   issueDescription: {
