@@ -78,7 +78,7 @@ const Reports = () => {
       <TouchableOpacity
         onPress={() =>
           router.push({
-            pathname: "/(tabs)/reports/[reportId]",
+            pathname: "/reports/[reportId]",
             params: { reportId: item._id },
           })
         }
