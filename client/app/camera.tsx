@@ -24,9 +24,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 export default function Camera() {
   const [fontsLoaded] = useFonts({
-  "Montserrat": require("../assets/fonts/Montserrat-Regular.ttf"),
-  "Montserrat-Bold": require("../assets/fonts/Montserrat-Bold.ttf"),
-});
+    Montserrat: require("../assets/fonts/Montserrat-Regular.ttf"),
+    "Montserrat-Bold": require("../assets/fonts/Montserrat-Bold.ttf"),
+  });
 
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
@@ -161,41 +161,41 @@ export default function Camera() {
       Alert.alert("Upload Failed", err?.message || "Something went wrong");
     }
   };
-  
-  
-//   const submitPhoto = async () => {
-//   /*
-//   if (!image) return;
-//   const formData = new FormData();
-//   formData.append("image", {
-//     uri: image,
-//     name: `photo${Date.now()}.jpg`,
-//     type: "image/jpeg",
-//   } as any);
 
-//   try {
-//     const url = await dispatch(uploadUserImage(formData)).unwrap();
-//     setUploadedImageURL(url);
-//     setUploadSuccess(true);
-//   } catch (err: any) {
-//     Alert.alert("Upload Failed", err);
-//   }
-//   */
+  // const submitPhoto = async () => {
+  //   /*
+  // if (!image) return;
+  // const formData = new FormData();
+  // formData.append("image", {
+  //   uri: image,
+  //   name: `photo${Date.now()}.jpg`,
+  //   type: "image/jpeg",
+  // } as any);
 
-//   const fakeImage = require("@/assets/images/fake-billboard.jpg"); // adjust path if needed
-//   const fakeUri = Image.resolveAssetSource(fakeImage).uri;
+  // try {
+  //   const url = await dispatch(uploadUserImage(formData)).unwrap();
+  //   setUploadedImageURL(url);
+  //   setUploadSuccess(true);
+  // } catch (err: any) {
+  //   Alert.alert("Upload Failed", err);
+  // }
+  // */
 
-//   router.push(
-//     `/ReportSubmission?imageUrl=${encodeURIComponent(fakeUri)}&fake=1`
-//   );
-// };
+  //   const fakeImage = require("@/assets/images/fake-billboard.jpg"); // adjust path if needed
+  //   const fakeUri = Image.resolveAssetSource(fakeImage).uri;
 
+  //   router.push(
+  //     `/ReportSubmission?imageUrl=${encodeURIComponent(fakeUri)}&fake=1`
+  //   );
+  // };
 
   // ✅ Success screen
   if (uploadSuccess) {
     return (
       <View style={styles.previewContainer}>
-        <Text style={styles.successText} className="font-montserrat">✅ Image uploaded successfully!</Text>
+        <Text style={styles.successText} className="font-montserrat">
+          ✅ Image uploaded successfully!
+        </Text>
 
         <View style={styles.successControls}>
           <TouchableOpacity
@@ -225,7 +225,9 @@ export default function Camera() {
             }}
           >
             <Ionicons name="camera" size={20} color="#666" />
-            <Text style={styles.retakeButtonText} className="font-montserrat">Retake</Text>
+            <Text style={styles.retakeButtonText} className="font-montserrat">
+              Retake
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -287,17 +289,25 @@ export default function Camera() {
           resizeMode="contain"
         />
         <View style={styles.previewControls}>
-          <TouchableOpacity 
-            style={styles.retakeButton} 
+          <TouchableOpacity
+            style={styles.retakeButton}
             onPress={retakePhoto}
             activeOpacity={0.8}
           >
-            <Ionicons name="camera" size={20} color="#EF4444" /> 
-            <Text style={styles.retakeButtonText} className="font-montserratBold">Retake</Text>
+            <Ionicons name="camera" size={20} color="#EF4444" />
+            <Text
+              style={styles.retakeButtonText}
+              className="font-montserratBold"
+            >
+              Retake
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.proceedButton, status === "loading" && styles.proceedButtonDisabled]}
+            style={[
+              styles.proceedButton,
+              status === "loading" && styles.proceedButtonDisabled,
+            ]}
             onPress={submitPhoto}
             disabled={status === "loading"}
             activeOpacity={0.8}
@@ -307,11 +317,15 @@ export default function Camera() {
             ) : (
               <>
                 <Ionicons name="checkmark" size={20} color="white" />
-                <Text style={styles.proceedButtonText} className="font-montserratBold">Submit</Text>
+                <Text
+                  style={styles.proceedButtonText}
+                  className="font-montserratBold"
+                >
+                  Submit
+                </Text>
               </>
             )}
           </TouchableOpacity>
-
         </View>
         {status === "failed" && error && (
           <Text style={styles.errorText}>{error}</Text>
@@ -322,7 +336,9 @@ export default function Camera() {
 
   return (
     <View style={styles.loadingContainer}>
-      <Text style={styles.loadingText} className="font-montserrat">Camera not available</Text>
+      <Text style={styles.loadingText} className="font-montserrat">
+        Camera not available
+      </Text>
     </View>
   );
 }
@@ -404,7 +420,7 @@ const styles = StyleSheet.create({
   },
   preview: {
     padding: 30,
-    marginBottom:20,
+    marginBottom: 20,
     // width/height applied inline based on aspect ratio
   },
   previewControls: {
