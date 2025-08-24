@@ -93,7 +93,7 @@ const RegisterScreen = () => {
       className="flex-1 bg-[#F9FAFB]"
       contentContainerStyle={{ flexGrow: 1 }}
       enableOnAndroid={true}
-      extraScrollHeight={20}
+      extraScrollHeight={70}
       keyboardShouldPersistTaps="handled"
     >
       <View className="flex-1 items-center justify-center bg-[#FFFFFF] p-10">

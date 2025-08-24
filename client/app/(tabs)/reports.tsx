@@ -234,7 +234,7 @@ const Reports = () => {
         }}
       >
         {/* Top row: date & time + status pill */}
-        <View className="flex-row items-center justify-between border-b border-text-secondary/20 pb-3">
+        <View className="flex-row items-center justify-between ">
           <View className="flex-row items-center">
             <Text
               className="text-sm font-montserrat"
@@ -273,7 +273,7 @@ const Reports = () => {
           {item.imageURL ? (
             <Image
               source={{ uri: item.imageURL }}
-              className="h-20 w-20 rounded-xl"
+              className="h-24 w-24 rounded-xl"
             />
           ) : (
             <View
