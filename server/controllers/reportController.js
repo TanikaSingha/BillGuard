@@ -3,6 +3,9 @@ const { StatusCodes } = require("http-status-codes");
 const { BadRequest } = require("../errors/index");
 const { link } = require("../routes/authRouter");
 const User = require("../models/userSchema");
+const { default: axios } = require("axios");
+
+// Admin can get all reports
 const getAllReports = async (req, res) => {
   const { role } = req.user;
   const allowedFilters = [
@@ -49,7 +52,6 @@ const getAllReports = async (req, res) => {
 
 const createReport = async (req, res) => {
   console.log("Called createReport");
-
   const { id, role } = req.user;
   const {
     issueDescription,
@@ -66,15 +68,42 @@ const createReport = async (req, res) => {
     });
   }
 
+  if (!location?.coordinates || location.coordinates.length !== 2) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      message: "Invalid location coordinates.",
+    });
+  }
+
+  const [longitude, latitude] = location.coordinates;
+  let newLocation = { ...location, address: "N/A", zone: "N/A" };
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
+    const loc = await axios.get(url, {
+      headers: { "User-Agent": "Billguard-Hackathon/2.0" },
+    });
+    console.log(loc.data);
+
+    newLocation.address = loc.data.display_name || "N/A";
+    newLocation.zoneId = loc.data.osm_id || "N/A";
+  } catch (err) {
+    console.warn("Reverse geocoding failed:", err.message);
+  }
+
+  // Check required fields
   const requiredFields = {
     issueDescription,
     imageURL,
     annotatedURL,
     violationType,
-    location,
+    location: newLocation,
   };
+
   const missingFields = Object.entries(requiredFields)
-    .filter(([_, value]) => !value || String(value).trim() === "")
+    .filter(
+      ([_, value]) =>
+        !value || (typeof value === "string" && value.trim() === "")
+    )
     .map(([key]) => key);
 
   if (missingFields.length > 0) {
@@ -83,18 +112,19 @@ const createReport = async (req, res) => {
     });
   }
 
+  // Sanitize and create report
   const sanitizedReport = {
     issueDescription: issueDescription.trim(),
     imageURL: imageURL.trim(),
     annotatedURL: annotatedURL.trim(),
-    violationType: violationType,
-    location: location,
+    violationType,
+    location: newLocation, // <- use processed location
     reportedBy: id,
     ...extraFields,
   };
 
   const report = await Report.create(sanitizedReport);
-  console.log(report);
+  console.log("Report created:", report);
 
   return res.status(StatusCodes.CREATED).json({
     data: report,
@@ -217,19 +247,25 @@ const getReportsByUser = async (req, res) => {
 
 const getReportById = async (req, res) => {
   const { reportId } = req.params;
-  const { id, role } = req.user;
-  if (role === "NormalUser" && id !== userId) {
-    throw new Unauthorized("You can only fetch your own reports.");
-  }
-  const report = await Report.findById(reportId).populate("reportedBy");
+  const { id: userId, role } = req.user;
+
+  const report = await Report.findById(reportId)
+    .populate("reportedBy", "username email role")
+    .lean();
+
   if (!report) {
     return res.status(StatusCodes.NOT_FOUND).json({
+      success: false,
       message: `No report found with id: ${reportId}`,
     });
   }
 
-  if (report.reportedBy._id.toString() !== id && role !== "AdminUser") {
+  const isOwner = report.reportedBy._id.toString() === userId;
+  const isAdmin = role === "AdminUser";
+
+  if (!isOwner && !isAdmin) {
     return res.status(StatusCodes.FORBIDDEN).json({
+      success: false,
       message: "You do not have permission to view this report.",
     });
   }

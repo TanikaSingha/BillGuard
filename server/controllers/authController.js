@@ -3,6 +3,7 @@ const User = require("../models/userSchema");
 const { NormalUser, AdminUser } = require("../models/rolesSchema");
 const { BadRequest } = require("../errors/index");
 const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 const registerUser = async (req, res) => {
   const { username, email, role = "NormalUser" } = req.body;
@@ -20,6 +21,9 @@ const registerUser = async (req, res) => {
     console.log(NormalUser);
     newUser = await NormalUser.create(req.body);
   } else if (role.toLowerCase() === "adminuser") {
+    if (req.body.adminCode !== process.env.ADMIN_SECRET_CODE) {
+      throw new BadRequest("Invalid admin code!.");
+    }
     newUser = await AdminUser.create(req.body);
   } else {
     throw new BadRequest("Invalid role provided.");

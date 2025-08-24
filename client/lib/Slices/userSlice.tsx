@@ -5,11 +5,18 @@ import apiRequest from "../utils/apiRequest";
 
 interface NormalUserData {
   xp: number;
-  level: number;
   reportsSubmitted: number;
   reportsVerified: number;
   badges: string[];
 }
+
+interface AdminUserData {
+  permissions: string[];
+  verifiedReports: number;
+  rejectedReports: number;
+  adminCode: string;
+}
+
 interface User {
   _id: string;
   name: string;
@@ -17,7 +24,8 @@ interface User {
   email: string;
   avatar?: string;
   role?: "NormalUser" | "AdminUser";
-  normalUser?:NormalUserData;
+  normalUser?: NormalUserData;
+  adminUser?: AdminUserData;
 }
 
 interface UserState {
@@ -30,6 +38,48 @@ const initialState: UserState = {
   user: null,
   status: "idle",
   error: null,
+};
+
+const mapUserData = (data: any): User => {
+  if (data.role === "NormalUser") {
+    return {
+      _id: data._id,
+      name: data.name,
+      username: data.username,
+      email: data.email,
+      avatar: data.avatar,
+      role: "NormalUser",
+      normalUser: {
+        xp: data.xp ?? 0,
+        reportsSubmitted: data.reportsSubmitted ?? 0,
+        reportsVerified: data.reportsVerified ?? 0,
+        badges: data.badges ?? [],
+      },
+    };
+  } else if (data.role === "AdminUser") {
+    return {
+      _id: data._id,
+      name: data.name,
+      username: data.username,
+      email: data.email,
+      avatar: data.avatar,
+      role: "AdminUser",
+      adminUser: {
+        permissions: data.permissions ?? [],
+        verifiedReports: data.verifiedReports ?? 0,
+        rejectedReports: data.rejectedReports ?? 0,
+        adminCode: data.adminCode ?? "",
+      },
+    };
+  } else {
+    return {
+      _id: data._id,
+      name: data.name,
+      username: data.username,
+      email: data.email,
+      avatar: data.avatar,
+    };
+  }
 };
 
 const saveUser = async (user: User | null) => {
@@ -55,7 +105,8 @@ export const loginUser = createAsyncThunk<
     if (token) {
       await SecureStore.setItemAsync("authToken", token);
     }
-    return data;
+    const userData = mapUserData(data);
+    return userData;
   } catch (err: any) {
     return rejectWithValue(err.response?.data?.message || err.message);
   }
@@ -74,7 +125,8 @@ export const registerUser = createAsyncThunk<
 >("user/registerUser", async (payload, { rejectWithValue }) => {
   try {
     const res = await apiRequest.post("/auth/register", payload);
-    return res.data.data;
+    const userData = mapUserData(res.data.data);
+    return userData;
   } catch (err: any) {
     return rejectWithValue(err.response?.data?.message || err.message);
   }

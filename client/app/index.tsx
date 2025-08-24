@@ -18,8 +18,11 @@ export default function Index() {
 
   useEffect(() => {
     if (status === "succeeded") {
-      if (user) router.replace("/(tabs)");
-      else router.replace("/login");
+      if (user?.role === "NormalUser") router.replace("/(tabs)");
+      else if (user?.role === "AdminUser") {
+        console.log("Admin user detected, navigating to admin dashboard");
+        router.replace("/(admin)/dashboard");
+      } else router.replace("/login");
     }
   }, [status, user]);
 
