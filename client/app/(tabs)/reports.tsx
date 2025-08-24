@@ -1,21 +1,51 @@
 import { getReportsByUser } from "@/lib/Slices/reportSlice";
 import { AppDispatch, RootState } from "@/store/store";
-import { Picker } from "@react-native-picker/picker";
+import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   FlatList,
   Image,
-  StyleSheet,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 
 const Reports = () => {
+  const STATUS_OPTIONS = [
+    { label: "All Status", value: "" },
+    { label: "Pending", value: "pending" },
+    { label: "Resolved", value: "resolved" },
+    { label: "Rejected", value: "rejected" },
+  ];
+  const VIOLATION_OPTIONS = [
+    { label: "All Violation Types", value: "" },
+    { label: "Size Violation", value: "size_violation" },
+    { label: "Unauthorized", value: "unauthorized" },
+    { label: "Other", value: "other" },
+  ];
+
+  const VERDICT_OPTIONS = [
+    { label: "All Verdicts", value: "" },
+    { label: "Authorized", value: "authorized" },
+    { label: "Unauthorized", value: "unauthorized" },
+    { label: "Unsure", value: "unsure" },
+  ];
+  // which submenu is open: "status" | "violationType" | "verdict" | null
+  const [openKey, setOpenKey] = useState<
+    null | "status" | "violationType" | "verdict"
+  >(null);
+
+  // util to get label for current value
+  const getLabel = (opts: { label: string; value: string }[], v: string) =>
+    opts.find((o) => o.value === v)?.label ?? opts[0].label;
   const dispatch = useDispatch<AppDispatch>();
   const route = useRoute<any>();
   const router = useRouter();
@@ -28,11 +58,28 @@ const Reports = () => {
     page: 1,
     limit: 10,
   });
+  // inside Reports component (add new state)
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [tempFilters, setTempFilters] = useState(filters);
+
+  // prepare slide animation
+  const slideY = useRef(new Animated.Value(-260)).current; // hidden above
+  useEffect(() => {
+    Animated.timing(slideY, {
+      toValue: menuVisible ? 0 : -260,
+      duration: 220,
+      useNativeDriver: true,
+    }).start();
+  }, [menuVisible]);
+
+  // when opening, copy current filters into temp
+  useEffect(() => {
+    if (menuVisible) setTempFilters(filters);
+  }, [menuVisible]);
 
   const [recentReports, setRecentReports] = useState<any[]>([]);
   const [showRecent, setShowRecent] = useState(false);
 
-  // Fetch reports
   const fetchReports = async () => {
     const data: any = await dispatch(
       getReportsByUser({
@@ -52,7 +99,7 @@ const Reports = () => {
           (a: any, b: any) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-      setRecentReports(sortedReports.slice(0, 1)); // Only most recent report
+      setRecentReports(sortedReports.slice(0, 1));
     } else {
       setShowRecent(false);
       setRecentReports([]);
@@ -63,7 +110,6 @@ const Reports = () => {
     fetchReports();
   }, [filters, route.params?.fromSubmission]);
 
-  // Reset recent reports when leaving the page
   useFocusEffect(
     useCallback(() => {
       return () => {
@@ -73,175 +119,519 @@ const Reports = () => {
     }, [])
   );
 
-  const renderReportItem = ({ item }: { item: any }) => (
-    <View style={styles.reportCard}>
-      <TouchableOpacity
-        onPress={() =>
-          router.push({
-            pathname: "/reports/[reportId]",
-            params: { reportId: item._id },
-          })
-        }
+  // const renderReportItem = ({ item }: { item: any }) => (
+  //   <View className="relative mb-4 rounded-2xl bg-white p-4 shadow-lg border border-border bg-surface">
+  //     {/* Status pill (top-right, non-clickable) */}
+  //     <View
+  //       className={[
+  //         "absolute right-3 top-3 rounded-full border px-2.5 py-1",
+  //         item?.status?.toLowerCase() === "pending"
+  //           ? "bg-yellow-100 border-yellow-300"
+  //           : item?.status?.toLowerCase() === "rejected"
+  //             ? "bg-red-100 border-red-300"
+  //             : "bg-green-100 border-green-300",
+  //       ].join(" ")}
+  //     >
+  //       <Text
+  //         className={[
+  //           "text-xs font-semibold",
+  //           item?.status?.toLowerCase() === "pending"
+  //             ? "text-yellow-800"
+  //             : item?.status?.toLowerCase() === "rejected"
+  //               ? "text-red-800"
+  //               : "text-green-800",
+  //         ].join(" ")}
+  //         style={{ fontFamily: "Montserrat-Bold" }}
+  //       >
+  //         {item.status?.toUpperCase()}
+  //       </Text>
+  //     </View>
+
+  //     {/* Heading: Verdict */}
+  //     <Text className="pr-24 text-lg font-montserratBold text-text-primary">
+  //       {(item.aiAnalysis?.verdict || "N/A").toUpperCase()}
+  //     </Text>
+
+  //     {/* Images (slightly smaller height) */}
+  //     <View className="mt-2 mb-2 flex-row gap-2">
+  //       {item.imageURL && (
+  //         <Image
+  //           source={{ uri: item.imageURL }}
+  //           className="h-36 w-[48%] rounded-xl"
+  //         />
+  //       )}
+  //       {item.annotatedURL && (
+  //         <Image
+  //           source={{ uri: item.annotatedURL }}
+  //           className="h-36 w-[48%] rounded-xl"
+  //         />
+  //       )}
+  //     </View>
+
+  //     <View className="flex-row justify-between items-end">
+  //       <View>
+  //         {/* Submitted on */}
+  //         <Text className="mb-1 text-xs text-text-secondary font-montserrat">
+  //           <Text className="font-semibold text-text-primary">
+  //             Submitted on:
+  //           </Text>{" "}
+  //           {new Date(item.submittedAt).toLocaleString()}
+  //         </Text>
+  //         {/* Problems / Violations (below images) */}
+  //         <Text className="mb-1 text-xs text-text-secondary font-montserrat">
+  //           <Text className="font-semibold text-text-primary">Issues:</Text>{" "}
+  //           {item.violationType?.length ? item.violationType.join(", ") : "N/A"}
+  //         </Text>
+
+  //         {/* Location */}
+  //         <Text className="mb-1 text-xs text-text-secondary font-montserrat">
+  //           <Text className="font-semibold text-text-primary">Location:</Text>{" "}
+  //           {item.location?.coordinates?.join(", ") || "N/A"}
+  //         </Text>
+  //       </View>
+  //       <View>
+  //         <TouchableOpacity
+  //           className="self-end rounded-full bg-primary-main px-4 py-2 shadow"
+  //           onPress={() =>
+  //             router.push({
+  //               pathname: "/reports/[reportId]",
+  //               params: { reportId: item._id },
+  //             })
+  //           }
+  //         >
+  //           <Text className="text-xs font-semibold text-white font-montserratBold">
+  //             See Details
+  //           </Text>
+  //         </TouchableOpacity>
+  //       </View>
+  //     </View>
+  //   </View>
+  // );
+  const renderReportItem = ({ item }: { item: any }) => {
+    const status = (item?.status || "").toLowerCase();
+
+    // Status colors from your palette
+    const statusStyles =
+      status === "pending"
+        ? { bg: "#FEF3C7", border: "#F59E0B", text: "#B45309" } // warning (soft)
+        : status === "rejected"
+          ? { bg: "#FEE2E2", border: "#EF4444", text: "#B91C1C" } // error (soft)
+          : { bg: "#DCFCE7", border: "#16A34A", text: "#166534" }; // success (soft)
+
+    const verdict = (item.aiAnalysis?.verdict || "N/A").toUpperCase();
+    const thumb = item.annotatedURL || item.imageURL; // use AI image first
+
+    return (
+      <View
+        className="mb-4 mx-2 rounded-2xl p-4 shadow-md border border-border"
+        style={{
+          backgroundColor: "#FFFFFF", // surface
+          borderColor: "#E5E7EB", // border
+          shadowColor: "#000",
+          shadowOpacity: 0.06,
+          shadowRadius: 6,
+          shadowOffset: { width: 0, height: 2 },
+        }}
       >
-        <Text>See Details!</Text>
-      </TouchableOpacity>
-      <Text style={styles.reportTitle}>
-        {item.violationType.join(", ")} - {item.status.toUpperCase()}
-      </Text>
-      <View style={styles.imageRow}>
-        {item.imageURL && (
-          <Image source={{ uri: item.imageURL }} style={styles.reportImage} />
-        )}
-        {item.annotatedURL && (
-          <Image
-            source={{ uri: item.annotatedURL }}
-            style={styles.reportImage}
-          />
-        )}
+        {/* Top row: date & time + status pill */}
+        <View className="flex-row items-center justify-between border-b border-text-secondary/20 pb-3">
+          <View className="flex-row items-center">
+            <Text
+              className="text-sm font-montserrat"
+              style={{ color: "#6B7280" }} // text.secondary
+            >
+              {new Date(item.submittedAt).toLocaleDateString("en-US", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </Text>
+
+            <Ionicons
+              name="ellipse"
+              size={4}
+              color="#9CA3AF" // text.disabled
+              style={{ marginHorizontal: 6 }}
+            />
+
+            <Text
+              className="text-sm font-montserrat"
+              style={{ color: "#6B7280" }} // text.secondary
+            >
+              {new Date(item.submittedAt).toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })}
+            </Text>
+          </View>
+        </View>
+
+        {/* Middle row: thumbnail + title (verdict) */}
+        <View className="flex-row items-start gap-3 mt-4 border-b border-text-secondary/20 pb-4">
+          {/* Thumbnail */}
+          {item.imageURL ? (
+            <Image
+              source={{ uri: item.imageURL }}
+              className="h-20 w-20 rounded-xl"
+            />
+          ) : (
+            <View
+              className="h-20 w-20 rounded-xl"
+              style={{ backgroundColor: "#F3F4F6" }}
+            />
+          )}
+
+          {/* Right side content */}
+          <View className="flex-1 flex-col justify-start">
+            {/* Status pill */}
+            <View
+              className="self-start rounded-lg px-2 py-0.5"
+              style={{
+                backgroundColor: statusStyles.bg,
+                borderColor: statusStyles.border,
+                borderWidth: 1,
+              }}
+            >
+              <Text
+                className="text-[10px] font-montserratBold"
+                style={{ color: statusStyles.text }}
+              >
+                {item.status?.toUpperCase()}
+              </Text>
+            </View>
+
+            {/* Verdict */}
+            <Text
+              numberOfLines={1}
+              className="mt-1 text-base font-montserratBold"
+              style={{ color: "#1F2937" }} // text.primary
+            >
+              {verdict === "AUTHORIZED"
+                ? "Authorized"
+                : verdict === "UNAUTHORIZED"
+                  ? "Unauthorized"
+                  : verdict}
+            </Text>
+
+            {/* Issues list */}
+            <View className="mt-1 flex-row flex-wrap gap-2">
+              {item.violationType?.length ? (
+                item.violationType.map((issue: string, idx: number) => {
+                  // format: "size_violation" -> "Size violation"
+                  const formatted = issue
+                    .replace(/_/g, " ") // replace underscores with spaces
+                    .toLowerCase() // make everything lowercase
+                    .replace(/^\w/, (c) => c.toUpperCase()); // capitalize first letter
+
+                  return (
+                    <View
+                      key={idx}
+                      className="rounded-full px-2 py-0.5"
+                      style={{ backgroundColor: "#F3F4F6" }}
+                    >
+                      <Text
+                        className="text-[11px] font-montserrat"
+                        style={{ color: "#374151" }}
+                      >
+                        {formatted}
+                      </Text>
+                    </View>
+                  );
+                })
+              ) : (
+                <Text
+                  className="text-[11px] font-montserrat"
+                  style={{ color: "#9CA3AF" }} // text.disabled
+                >
+                  No issues
+                </Text>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* Bottom row: (left empty per request) + See details link on right */}
+        <View className="mt-4 flex-row items-center justify-between">
+          <View />
+          {/* intentionally empty (was "Total" in the reference) */}
+
+          <TouchableOpacity
+            className="flex-row items-center gap-1"
+            onPress={() =>
+              router.push({
+                pathname: "/reports/[reportId]",
+                params: { reportId: item._id },
+              })
+            }
+            activeOpacity={0.8}
+          >
+            <Text
+              className="text-sm font-montserratBold"
+              style={{ color: "#6C4FE0" }} // primary.main
+            >
+              See details
+            </Text>
+            <Ionicons name="arrow-forward" size={16} color="#6C4FE0" />
+          </TouchableOpacity>
+        </View>
       </View>
-      <Text style={styles.reportText}>
-        <Text style={styles.bold}>Verdict:</Text>{" "}
-        {item.aiAnalysis?.verdict || "N/A"}
-      </Text>
-      <Text style={styles.reportText}>
-        <Text style={styles.bold}>Location:</Text>{" "}
-        {item.location?.coordinates.join(", ") || "N/A"}
-      </Text>
-      <Text style={styles.reportText}>
-        <Text style={styles.bold}>Submitted on:</Text>{" "}
-        {new Date(item.submittedAt).toLocaleString()}
-      </Text>
-    </View>
-  );
+    );
+  };
 
   if (status === "loading") {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#1E90FF" />
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      {/* Filters */}
-      <View style={styles.filterContainer}>
-        <Text style={styles.filterTitle}>Filters:</Text>
-        <Picker
-          selectedValue={filters.status}
-          onValueChange={(val) => setFilters({ ...filters, status: val })}
-          style={styles.picker}
-        >
-          <Picker.Item label="All Status" value="" />
-          <Picker.Item label="Pending" value="pending" />
-          <Picker.Item label="Resolved" value="resolved" />
-          <Picker.Item label="Rejected" value="rejected" />
-        </Picker>
-        <Picker
-          selectedValue={filters.violationType}
-          onValueChange={(val) =>
-            setFilters({ ...filters, violationType: val })
-          }
-          style={styles.picker}
-        >
-          <Picker.Item label="All Violation Types" value="" />
-          <Picker.Item label="Size Violation" value="size_violation" />
-          <Picker.Item label="Unauthorized" value="unauthorized" />
-          <Picker.Item label="Other" value="other" />
-        </Picker>
-        <Picker
-          selectedValue={filters.verdict}
-          onValueChange={(val) => setFilters({ ...filters, verdict: val })}
-          style={styles.picker}
-        >
-          <Picker.Item label="All Verdicts" value="" />
-          <Picker.Item label="Authorized" value="authorized" />
-          <Picker.Item label="Unauthorized" value="unauthorized" />
-          <Picker.Item label="Unsure" value="unsure" />
-        </Picker>
+    <View className="flex-1 bg-neutral-100">
+      <View
+        className="bg-primary-dark px-4 py-3 shadow-lg shadow-primary-dark/40 border-b border-primary-main/30"
+        style={{ zIndex: 20, elevation: 12 }}
+      >
+        <View className="flex-row items-center justify-between">
+          <Text className="font-montserratBold text-xl text-white tracking-widest">
+            My Reports
+          </Text>
+
+          <TouchableOpacity
+            className="flex-row items-center gap-2 rounded-xl bg-white/10 border border-white/20 px-3 py-2"
+            onPress={() => setMenuVisible((p) => !p)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="filter-outline" size={20} color="#FFFFFF" />
+            <Text className="text-white font-montserrat">Filters</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Recently Submitted */}
-      {showRecent && recentReports.length > 0 && (
-        <>
-          <Text style={styles.sectionTitle}>Recently Submitted</Text>
-          <FlatList
-            data={recentReports}
-            renderItem={renderReportItem}
-            keyExtractor={(item) => item._id}
-          />
-        </>
-      )}
+      {/* Backdrop */}
+      {menuVisible && (
+        <View
+          className="absolute right-4 top-20 w-72 rounded-2xl border px-4 py-3 z-50"
+          style={{
+            backgroundColor: "#A78BFA", // primary.light
+            borderColor: "#6C4FE0", // primary.main
+            borderWidth: 2,
+            shadowColor: "#4C1D95", // primary.dark
+            shadowOpacity: 0.25,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 4 },
+          }}
+        >
+          {/* Header */}
+          <View className="pb-2 border-b border-white/40 mb-3">
+            <Text className="font-montserratBold text-lg text-white">
+              Filters
+            </Text>
+          </View>
 
-      {/* Report History */}
-      <Text style={styles.sectionTitle}>Report History</Text>
-      {reports.length === 0 ? (
-        <Text style={styles.emptyText}>No reports found.</Text>
-      ) : (
-        <FlatList
-          data={reports}
-          renderItem={renderReportItem}
-          keyExtractor={(item) => item._id}
-        />
+          {/* STATUS row */}
+          <View className="mb-2 rounded-2xl border border-white/40 bg-white/10 overflow-hidden">
+            <TouchableOpacity
+              className="flex-row items-center justify-between px-3 py-3"
+              onPress={() => setOpenKey(openKey === "status" ? null : "status")}
+              activeOpacity={0.8}
+            >
+              <Text className="text-white font-montserrat">
+                {getLabel(STATUS_OPTIONS, tempFilters.status)}
+              </Text>
+              <Ionicons
+                name={openKey === "status" ? "chevron-up" : "chevron-down"}
+                size={18}
+                color="#fff"
+              />
+            </TouchableOpacity>
+
+            {openKey === "status" && (
+              <View className="bg-white/15">
+                {STATUS_OPTIONS.map((opt) => (
+                  <TouchableOpacity
+                    key={opt.value}
+                    className="px-3 py-2 flex-row items-center justify-between"
+                    onPress={() => {
+                      setTempFilters((f) => ({ ...f, status: opt.value }));
+                      setOpenKey(null);
+                    }}
+                  >
+                    <Text className="text-white font-montserrat">
+                      {opt.label}
+                    </Text>
+                    {tempFilters.status === opt.value && (
+                      <Ionicons name="checkmark" size={16} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* VIOLATION TYPE row */}
+          <View className="mb-2 rounded-2xl border border-white/40 bg-white/10 overflow-hidden">
+            <TouchableOpacity
+              className="flex-row items-center justify-between px-3 py-3"
+              onPress={() =>
+                setOpenKey(openKey === "violationType" ? null : "violationType")
+              }
+              activeOpacity={0.8}
+            >
+              <Text className="text-white font-montserrat">
+                {getLabel(VIOLATION_OPTIONS, tempFilters.violationType)}
+              </Text>
+              <Ionicons
+                name={
+                  openKey === "violationType" ? "chevron-up" : "chevron-down"
+                }
+                size={18}
+                color="#fff"
+              />
+            </TouchableOpacity>
+
+            {openKey === "violationType" && (
+              <View className="bg-white/15">
+                {VIOLATION_OPTIONS.map((opt) => (
+                  <TouchableOpacity
+                    key={opt.value}
+                    className="px-3 py-2 flex-row items-center justify-between"
+                    onPress={() => {
+                      // ✅ FIX: update violationType (not status)
+                      setTempFilters((f) => ({
+                        ...f,
+                        violationType: opt.value,
+                      }));
+                      setOpenKey(null);
+                    }}
+                  >
+                    <Text className="text-white font-montserrat">
+                      {opt.label}
+                    </Text>
+                    {tempFilters.violationType === opt.value && (
+                      <Ionicons name="checkmark" size={16} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* VERDICT row */}
+          <View className="mb-3 rounded-2xl border border-white/40 bg-white/10 overflow-hidden">
+            <TouchableOpacity
+              className="flex-row items-center justify-between px-3 py-3"
+              onPress={() =>
+                setOpenKey(openKey === "verdict" ? null : "verdict")
+              }
+              activeOpacity={0.8}
+            >
+              <Text className="text-white font-montserrat">
+                {getLabel(VERDICT_OPTIONS, tempFilters.verdict)}
+              </Text>
+              <Ionicons
+                name={openKey === "verdict" ? "chevron-up" : "chevron-down"}
+                size={18}
+                color="#fff"
+              />
+            </TouchableOpacity>
+
+            {openKey === "verdict" && (
+              <View className="bg-white/15">
+                {VERDICT_OPTIONS.map((opt) => (
+                  <TouchableOpacity
+                    key={opt.value}
+                    className="px-3 py-2 flex-row items-center justify-between"
+                    onPress={() => {
+                      // ✅ FIX: update verdict (not status)
+                      setTempFilters((f) => ({ ...f, verdict: opt.value }));
+                      setOpenKey(null);
+                    }}
+                  >
+                    <Text className="text-white font-montserrat">
+                      {opt.label}
+                    </Text>
+                    {tempFilters.verdict === opt.value && (
+                      <Ionicons name="checkmark" size={16} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Buttons */}
+          {/* Buttons */}
+          <View className="flex-row justify-end gap-2">
+            <TouchableOpacity
+              className="rounded-xl border border-white/40 bg-white/10 px-3 py-2"
+              onPress={() =>
+                setTempFilters({
+                  status: "",
+                  violationType: "",
+                  verdict: "",
+                  page: 1,
+                  limit: 10,
+                })
+              }
+            >
+              <Text className="font-montserrat text-white">Reset</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="rounded-xl bg-white px-4 py-2"
+              onPress={() => {
+                setFilters(tempFilters); // <-- triggers fetch via your useEffect
+                setMenuVisible(false);
+              }}
+            >
+              <Text className="font-montserratBold text-primary-dark">
+                Apply
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       )}
+      <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
+        <ScrollView className="my-6 mx-6" showsVerticalScrollIndicator={false}>
+          {/* Recently Submitted */}
+          {showRecent && recentReports.length > 0 && (
+            <>
+              <Text className="mb-3 text-md font-montserratBold text-text-primary tracking-wide">
+                RECENTLY SUBMITTED
+              </Text>
+              <FlatList
+                data={recentReports}
+                renderItem={renderReportItem}
+                keyExtractor={(item) => item._id}
+                scrollEnabled={false}
+                contentContainerStyle={{}}
+              />
+            </>
+          )}
+
+          {/* Report History */}
+          <Text className="mb-3 text-MD font-montserratBold text-text-primary tracking-wide">
+            REPORT HISTORY
+          </Text>
+          {reports.length === 0 ? (
+            <Text className="mt-5 text-center text-sm text-neutral-500">
+              No reports found.
+            </Text>
+          ) : (
+            <FlatList
+              data={reports}
+              renderItem={renderReportItem}
+              keyExtractor={(item) => item._id}
+              scrollEnabled={false}
+              contentContainerStyle={{}}
+            />
+          )}
+        </ScrollView>
+      </SafeAreaView>
     </View>
   );
 };
 
 export default Reports;
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#f9f9f9" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  filterContainer: {
-    marginBottom: 16,
-    backgroundColor: "#fff",
-    padding: 12,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  filterTitle: {
-    fontWeight: "700",
-    marginBottom: 8,
-    fontSize: 16,
-    color: "#333",
-  },
-  picker: { marginBottom: 10 },
-  sectionTitle: {
-    fontWeight: "700",
-    fontSize: 18,
-    marginVertical: 12,
-    color: "#1E90FF",
-  },
-  reportCard: {
-    padding: 12,
-    marginBottom: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  reportTitle: {
-    fontWeight: "700",
-    fontSize: 16,
-    marginBottom: 8,
-    color: "#333",
-  },
-  imageRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
-  reportImage: { width: "48%", height: 180, borderRadius: 10 },
-  reportText: { fontSize: 14, marginBottom: 4, color: "#555" },
-  bold: { fontWeight: "600", color: "#333" },
-  emptyText: {
-    textAlign: "center",
-    marginTop: 20,
-    color: "#999",
-    fontSize: 14,
-  },
-});

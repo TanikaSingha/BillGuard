@@ -8,6 +8,9 @@ import {
 } from "@/lib/Slices/reportSlice";
 import apiRequest from "@/lib/utils/apiRequest";
 import { AppDispatch, RootState } from "@/store/store";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useFonts } from "expo-font";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useSearchParams } from "expo-router/build/hooks";
 import React, { useState } from "react";
@@ -15,6 +18,9 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
@@ -23,17 +29,7 @@ import {
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
-const violationOptions = [
-  "size_violation",
-  "illegal_location",
-  "structural_hazard",
-  "missing_license",
-  "obscene_content",
-  "political_violation",
-  "other",
-];
-
-const verdictOptions = ["unauthorized", "authorized", "unsure"];
+const verdictOptions = ["unauthorized", "authorized", "unsure"] as const;
 
 export default function ReportSubmissionDemo() {
   const router = useRouter();
@@ -41,21 +37,28 @@ export default function ReportSubmissionDemo() {
   const searchParams = useSearchParams();
   const imageUrl = searchParams.get("imageUrl");
   const decodedImageUrl = imageUrl ? decodeURIComponent(imageUrl) : "";
-  const { location } = useSelector((state: RootState) => state.location);
+  const [fontsLoaded] = useFonts({
+    Montserrat: require("../assets/fonts/Montserrat-Regular.ttf"),
+    "Montserrat-Bold": require("../assets/fonts/Montserrat-Bold.ttf"),
+  });
+
+  const { location } = useSelector((s: RootState) => s.location);
   const {
     exifData,
     issueDescription,
-    violationType,
     estimatedDistance,
     userOverrideVerdict,
     submitting,
-  } = useSelector((state: RootState) => state.report);
+  } = useSelector((s: RootState) => s.report);
 
   const [loadingAi, setLoadingAi] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<any | null>(null);
 
-  // Run AI Analysis
+  // --- actions ---
+
+  // real ai calling
+
   const handleAiAnalysis = async () => {
     try {
       setLoadingAi(true);
@@ -85,7 +88,46 @@ export default function ReportSubmissionDemo() {
     }
   };
 
-  // Submit Final Report
+  // fake one
+
+  // const handleAiAnalysis = async () => {
+  //   try {
+  //     setLoadingAi(true);
+  //     setAiError(null);
+
+  // 🔹 instead of API call, just hardcode mock data
+  //     const mockVerdict = {
+  //       annotatedImageUrl:
+  //         "https://via.placeholder.com/400x200.png?text=Annotated+Billboard",
+  //       location: { latitude: 22.5726, longitude: 88.3639 },
+  //       details: { width: 120, height: 80, angle: 15 },
+  //       violations: ["size_violation", "illegal_location"],
+  //       aiAnalysis: {
+  //         verdict: "unauthorized",
+  //         confidence: 0.92,
+  //         detectedObjects: ["billboard", "pole"],
+  //       },
+  //     };
+
+  //     // set mock verdict into state
+  //     setVerdict(mockVerdict);
+
+  //     // also update userOverrideVerdict (like AI would)
+  //     dispatch(
+  //       setUserOverrideVerdict(
+  //         mockVerdict.aiAnalysis.verdict as
+  //           | "unauthorized"
+  //           | "authorized"
+  //           | "unsure"
+  //       )
+  //     );
+  //   } catch (err: any) {
+  //     setAiError("Failed to set mock verdict");
+  //   } finally {
+  //     setLoadingAi(false);
+  //   }
+  // };
+
   const handleSubmit = async () => {
     try {
       const payload = {
@@ -112,7 +154,6 @@ export default function ReportSubmissionDemo() {
           detectedObjects: verdict?.aiAnalysis?.detectedObjects || [],
         },
       };
-      console.log(payload);
       await dispatch(submitReport(payload)).unwrap();
       Alert.alert("Success", "Your report has been submitted successfully!");
       dispatch(resetReport());
@@ -126,192 +167,342 @@ export default function ReportSubmissionDemo() {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={{ padding: 20, backgroundColor: "#fff" }}
-      showsVerticalScrollIndicator={false}
-    >
-      {decodedImageUrl ? (
-        <Image
-          source={{ uri: decodedImageUrl }}
-          style={{
-            width: "100%",
-            height: 200,
-            borderRadius: 10,
-            marginBottom: 20,
-          }}
-        />
-      ) : null}
-
-      {/* 🔹 User Estimated Distance */}
-      <Text style={{ fontWeight: "600", marginBottom: 5 }}>
-        Estimated Distance (m)
-      </Text>
-      <TextInput
-        style={{
-          borderWidth: 1,
-          borderColor: "#ccc",
-          borderRadius: 8,
-          padding: 10,
-          marginBottom: 20,
-        }}
-        placeholder="Enter estimated distance"
-        keyboardType="numeric"
-        value={
-          estimatedDistance !== null && estimatedDistance !== undefined
-            ? String(estimatedDistance)
-            : ""
-        }
-        onChangeText={(text) => dispatch(setEstimatedDistance(Number(text)))}
-      />
-
-      {/* 🔹 AI Analysis Button */}
-      <TouchableOpacity
-        style={{
-          backgroundColor: "#FF9500",
-          padding: 15,
-          borderRadius: 10,
-          alignItems: "center",
-          marginBottom: 20,
-          opacity: loadingAi ? 0.7 : 1,
-        }}
-        onPress={handleAiAnalysis}
-        disabled={loadingAi}
+    <SafeAreaView className="flex-1 bg-white">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        className="flex-1"
       >
-        {loadingAi ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={{ color: "white", fontWeight: "600" }}>
-            Run AI Analysis
-          </Text>
-        )}
-      </TouchableOpacity>
-
-      {/* 🔹 Show AI Verdict */}
-      {verdict && (
-        <View
-          style={{
-            padding: 15,
-            borderWidth: 1,
-            borderColor: "#ddd",
-            borderRadius: 10,
-            marginBottom: 20,
-            backgroundColor: "#f9f9f9",
-          }}
+        <ScrollView
+          className="px-6"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            { paddingBottom: 28 },
+            !verdict && { flexGrow: 1, justifyContent: "center" },
+          ]}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={{ fontWeight: "700", marginBottom: 10 }}>
-            AI Verdict
-          </Text>
+          {/* Title */}
+          <View className="items-center mt-6 mb-3">
+            <Text className="text-3xl text-neutral-900 tracking-wide font-montserratBold">
+              Submit Report
+            </Text>
+            <Text className="text-sm text-neutral-500 mt-1 font-montserrat">
+              Help us verify and act on violations quickly
+            </Text>
+          </View>
 
-          {verdict.annotatedImageUrl && (
-            <Image
-              source={{ uri: verdict.annotatedImageUrl }}
-              style={{
-                width: "100%",
-                height: 200,
-                borderRadius: 8,
-                marginBottom: 10,
-              }}
-            />
+          {/* Preview + Annotated in the SAME card */}
+          {decodedImageUrl ? (
+            <View
+              className="bg-white rounded-3xl px-4 pt-4 pb-3 mb-5 border border-neutral-200 shadow-lg"
+              style={{ elevation: 2 }}
+            >
+              {/* Original */}
+              <Image
+                source={{ uri: decodedImageUrl }}
+                className="w-full h-56 rounded-2xl"
+                resizeMode="cover"
+              />
+              <Text className="ml-1 text-xs text-neutral-500 mt-2 font-montserrat">
+                Uploaded image
+              </Text>
+
+              {/* Annotated (after verdict) */}
+              {verdict?.annotatedImageUrl ? (
+                <>
+                  <View className="h-[1px] bg-neutral-200 my-3" />
+                  <Image
+                    source={{ uri: verdict.annotatedImageUrl }}
+                    className="w-full h-56 rounded-2xl"
+                    resizeMode="cover"
+                  />
+                  <Text className="ml-1 text-xs text-neutral-500 mt-2 font-montserrat">
+                    Annotated image
+                  </Text>
+                </>
+              ) : null}
+            </View>
+          ) : null}
+
+          {/* Distance Input + helper + Run AI (only BEFORE verdict) */}
+          {!verdict && (
+            <>
+              <View className="flex-row items-center bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 mb-2">
+                <MaterialCommunityIcons
+                  name="map-marker-distance"
+                  size={24}
+                  color="#9CA3AF"
+                  className="mr-2"
+                />
+                <TextInput
+                  className="flex-1 text-base text-neutral-900 font-montserrat"
+                  placeholder="Write the Estimated distance (m)"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="numeric"
+                  value={
+                    estimatedDistance != null ? String(estimatedDistance) : ""
+                  }
+                  onChangeText={(t) =>
+                    dispatch(
+                      setEstimatedDistance(Number(t.replace(/[^\d.]/g, "")))
+                    )
+                  }
+                />
+              </View>
+              <Text className="text-xs text-neutral-500 mb-3 font-montserrat">
+                Please enter the distance between you and the billboard.
+              </Text>
+
+              <TouchableOpacity
+                onPress={handleAiAnalysis}
+                disabled={loadingAi}
+                activeOpacity={0.8}
+                className={`mt-3 py-3 rounded-full items-center justify-center ${
+                  loadingAi ? "bg-indigo-400" : "bg-indigo-600"
+                }`}
+              >
+                {loadingAi ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text className="text-white text-base tracking-wide font-montserratBold">
+                    Run AI Analysis
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </>
           )}
 
-          <Text>
-            📍 Location: {verdict.location.latitude},{" "}
-            {verdict.location.longitude}
-          </Text>
-          <Text>
-            📐 Size: {verdict.details.width} x {verdict.details.height}
-          </Text>
-          <Text>↔️ Angle: {verdict.details.angle}°</Text>
+          {aiError && (
+            <Text className="text-red-600 text-sm mt-3 font-montserrat">
+              {aiError}
+            </Text>
+          )}
 
-          <Text style={{ marginTop: 10, fontWeight: "600" }}>Violations:</Text>
-          {Array.isArray(verdict.violations) &&
-            verdict.violations.map((v: string, idx: number) => (
-              <Text key={idx} style={{ color: "red" }}>
-                • {v}
+          {/* ===== Post‑Analysis UI ===== */}
+          {verdict && (
+            <View className="mt-2">
+              {/* Details chips */}
+              <Text className="text-xl font-montserratBold text-neutral-900 mb-2 tracking-wide">
+                Details
               </Text>
-            ))}
 
-          <Text style={{ marginTop: 10, fontWeight: "600" }}>AI Verdict:</Text>
-          <Text>
-            Verdict: {verdict.aiAnalysis.verdict} (
-            {(verdict.aiAnalysis.confidence * 100).toFixed(1)}%)
-          </Text>
-          <Text>
-            Detected Objects: {verdict.aiAnalysis.detectedObjects.join(", ")}
-          </Text>
-        </View>
-      )}
+              <View className="flex-row gap-2">
+                {/* Location */}
+                <View className="flex-1 bg-neutral-50 border border-neutral-200 rounded-2xl p-4 items-center justify-center">
+                  <MaterialCommunityIcons
+                    name="map-marker"
+                    size={22}
+                    color="#4C1D95" // 👈 primary-main indigo (adjust if you have your own palette)
+                  />
+                  <Text className="mt-1 text-sm text-primary-main font-montserrat">
+                    Location
+                  </Text>
+                  <Text className="mt-1 text-xs text-neutral-900 font-montserratBold text-center">
+                    {verdict.location.latitude}, {verdict.location.longitude}
+                  </Text>
+                </View>
 
-      {aiError && (
-        <Text style={{ color: "red", marginBottom: 10 }}>{aiError}</Text>
-      )}
+                {/* Size */}
+                <View className="flex-1 bg-neutral-50 border border-neutral-200 rounded-2xl p-4 items-center justify-center">
+                  <MaterialCommunityIcons
+                    name="ruler-square"
+                    size={22}
+                    color="#4C1D95" // primary-main
+                  />
+                  <Text className="mt-1 text-sm text-primary-main font-montserrat">
+                    Size
+                  </Text>
+                  <Text className="mt-1 text-base text-neutral-900 font-montserratBold text-center">
+                    {verdict.details.width} × {verdict.details.height}
+                  </Text>
+                </View>
 
-      {/* 🔹 User Custom Verdict */}
-      <Text style={{ fontWeight: "600", marginBottom: 5 }}>
-        Do you agree with AI’s verdict?
-      </Text>
-      {verdictOptions.map((opt) => (
-        <TouchableOpacity
-          key={opt}
-          style={{
-            padding: 10,
-            marginBottom: 5,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: userOverrideVerdict === opt ? "#6c3ef4" : "#ccc",
-          }}
-          onPress={() =>
-            dispatch(
-              setUserOverrideVerdict(
-                opt as "unauthorized" | "authorized" | "unsure"
-              )
-            )
-          }
-        >
-          <Text
-            style={{ color: userOverrideVerdict === opt ? "#6c3ef4" : "#333" }}
-          >
-            {opt}
-          </Text>
-        </TouchableOpacity>
-      ))}
+                {/* Angle */}
+                <View className="flex-1 bg-neutral-50 border border-neutral-200 rounded-2xl p-4 items-center justify-center">
+                  <MaterialCommunityIcons
+                    name="angle-acute"
+                    size={22}
+                    color="#4C1D95" // primary-main
+                  />
+                  <Text className="mt-1 text-sm text-primary-main font-montserrat">
+                    Angle
+                  </Text>
+                  <Text className="mt-1 text-base text-neutral-900 font-montserratBold text-center">
+                    {verdict.details.angle}°
+                  </Text>
+                </View>
+              </View>
 
-      {/* 🔹 Issue Description */}
-      <Text style={{ fontWeight: "600", marginBottom: 5, marginTop: 15 }}>
-        Issue Description
-      </Text>
-      <TextInput
-        style={{
-          borderWidth: 1,
-          borderColor: "#ccc",
-          borderRadius: 8,
-          padding: 10,
-          marginBottom: 20,
-          minHeight: 80,
-        }}
-        placeholder="Describe the issue"
-        multiline
-        value={issueDescription}
-        onChangeText={(text) => dispatch(setIssueDescription(text))}
-      />
+              {/* Violations */}
+              <Text className="mt-5 text-xl font-montserratBold text-neutral-900 mb-2 tracking-wide">
+                Violations Detected
+              </Text>
+              {Array.isArray(verdict.violations) &&
+              verdict.violations.length > 0 ? (
+                <View className="flex-row flex-wrap gap-2">
+                  {verdict.violations.map((v: string, i: number) => (
+                    <View
+                      key={`${v}-${i}`}
+                      className="px-3 py-2 rounded-full bg-neutral-100 border border-primary-light"
+                    >
+                      <Text className="text-[13px] text-neutral-900 font-montserrat">
+                        {readable(v)}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text className="text-xs text-neutral-500 mt-2 font-montserrat">
+                  No explicit violations found.
+                </Text>
+              )}
 
-      {/* 🔹 Submit Report */}
-      <TouchableOpacity
-        style={{
-          backgroundColor: "#6c3ef4",
-          padding: 15,
-          borderRadius: 10,
-          alignItems: "center",
-          marginBottom: 40,
-          opacity: submitting ? 0.7 : 1,
-        }}
-        onPress={handleSubmit}
-        disabled={submitting}
-      >
-        <Text style={{ color: "white", fontWeight: "600" }}>
-          {submitting ? "Submitting..." : "Submit Report"}
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+              {/* Verdict Box */}
+              <View className="mt-4 bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex-row items-center justify-between">
+                {/* Left side */}
+                <View className="flex-1">
+                  <Text className="text-sm text-neutral-700 font-montserrat mb-1">
+                    AI Verdict
+                  </Text>
+                  <Text className="text-lg capitalize font-montserratBold text-primary-dark">
+                    {verdict.aiAnalysis.verdict}
+                  </Text>
+                  {!!verdict.aiAnalysis?.detectedObjects?.length && (
+                    <Text className="text-xs text-neutral-500 mt-1 font-montserrat">
+                      Objects: {verdict.aiAnalysis.detectedObjects.join(", ")}
+                    </Text>
+                  )}
+                </View>
+
+                {/* Right side - Confidence */}
+                <View className="items-center justify-center">
+                  <Text className="text-2xl font-montserratBold text-primary-dark">
+                    {(verdict.aiAnalysis.confidence * 100).toFixed(1)}%
+                  </Text>
+                  <Text className="text-[11px] text-neutral-500 font-montserrat">
+                    confidence
+                  </Text>
+                </View>
+              </View>
+
+              {/* Agree / Override */}
+              <View className="mt-6">
+                <Text className="text-base font-montserratBold text-neutral-900 mb-3">
+                  Do you agree with AI’s verdict?
+                </Text>
+                <View className="flex-row flex-wrap gap-3">
+                  {[
+                    { key: "yes", label: "Yes" },
+                    { key: "no", label: "No" },
+                    { key: "unsure", label: "Not Sure" },
+                  ].map((opt) => {
+                    const selected = userOverrideVerdict === opt.key;
+                    return (
+                      <TouchableOpacity
+                        key={opt.key}
+                        onPress={() =>
+                          dispatch(
+                            setUserOverrideVerdict(
+                              opt.key as
+                                | "unauthorized"
+                                | "authorized"
+                                | "unsure"
+                            )
+                          )
+                        }
+                        activeOpacity={0.9}
+                        className={`px-6 py-3 rounded-full border ${
+                          selected
+                            ? "bg-violet-600 border-violet-600"
+                            : "bg-white border-neutral-300"
+                        }`}
+                      >
+                        <Text
+                          className={`text-sm font-montserrat ${
+                            selected
+                              ? "text-white font-montserratBold"
+                              : "text-neutral-800"
+                          }`}
+                        >
+                          {opt.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Description */}
+              <View className="mt-6">
+                <Text className="text-base font-montserratBold text-neutral-900 mb-3">
+                  Issue Description
+                </Text>
+                <TextInput
+                  className="bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-4 text-base text-neutral-900 min-h-[100px] font-montserrat"
+                  placeholder="Describe what’s wrong (e.g. oversized, unsafe, near school)"
+                  placeholderTextColor="#9CA3AF"
+                  multiline
+                  value={issueDescription}
+                  onChangeText={(t) => dispatch(setIssueDescription(t))}
+                />
+              </View>
+
+              {/* Submit */}
+              <View className="mt-6">
+                <TouchableOpacity
+                  onPress={handleSubmit}
+                  disabled={submitting}
+                  activeOpacity={0.85}
+                  className={`py-4 rounded-full items-center justify-center ${
+                    submitting ? "bg-primary-light" : "bg-primary-main"
+                  }`}
+                >
+                  <Text className="text-white text-lg font-montserratBold tracking-wide">
+                    {submitting ? "Submitting..." : "Submit Report"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
+
+function PrimaryButton({
+  label,
+  onPress,
+  disabled,
+  children,
+}: {
+  label?: string;
+  onPress: () => void;
+  disabled?: boolean;
+  children?: React.ReactNode;
+}) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      disabled={disabled}
+      onPress={onPress}
+      className={`rounded-full overflow-hidden ${disabled ? "opacity-70" : ""} mt-1`}
+    >
+      <LinearGradient
+        colors={["#7C3AED", "#6C3EF4", "#6D28D9"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        className="px-6 py-4 items-center justify-center"
+      >
+        {children ? (
+          children
+        ) : (
+          <Text className="text-white font-extrabold text-base">{label}</Text>
+        )}
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+}
+
+const readable = (s: string) =>
+  s.replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());

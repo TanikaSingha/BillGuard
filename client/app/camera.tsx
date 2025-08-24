@@ -24,9 +24,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 export default function Camera() {
   const [fontsLoaded] = useFonts({
-  "Montserrat": require("../assets/fonts/Montserrat-Regular.ttf"),
-  "Montserrat-Bold": require("../assets/fonts/Montserrat-Bold.ttf"),
-});
+    Montserrat: require("../assets/fonts/Montserrat-Regular.ttf"),
+    "Montserrat-Bold": require("../assets/fonts/Montserrat-Bold.ttf"),
+  });
 
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
@@ -161,72 +161,100 @@ export default function Camera() {
       Alert.alert("Upload Failed", err?.message || "Something went wrong");
     }
   };
-  
-  
-//   const submitPhoto = async () => {
-//   /*
-//   if (!image) return;
-//   const formData = new FormData();
-//   formData.append("image", {
-//     uri: image,
-//     name: `photo${Date.now()}.jpg`,
-//     type: "image/jpeg",
-//   } as any);
 
-//   try {
-//     const url = await dispatch(uploadUserImage(formData)).unwrap();
-//     setUploadedImageURL(url);
-//     setUploadSuccess(true);
-//   } catch (err: any) {
-//     Alert.alert("Upload Failed", err);
-//   }
-//   */
+  // const submitPhoto = async () => {
+  //   /*
+  // if (!image) return;
+  // const formData = new FormData();
+  // formData.append("image", {
+  //   uri: image,
+  //   name: `photo${Date.now()}.jpg`,
+  //   type: "image/jpeg",
+  // } as any);
 
-//   const fakeImage = require("@/assets/images/fake-billboard.jpg"); // adjust path if needed
-//   const fakeUri = Image.resolveAssetSource(fakeImage).uri;
+  // try {
+  //   const url = await dispatch(uploadUserImage(formData)).unwrap();
+  //   setUploadedImageURL(url);
+  //   setUploadSuccess(true);
+  // } catch (err: any) {
+  //   Alert.alert("Upload Failed", err);
+  // }
+  // */
 
-//   router.push(
-//     `/ReportSubmission?imageUrl=${encodeURIComponent(fakeUri)}&fake=1`
-//   );
-// };
+  //   const fakeImage = require("@/assets/images/fake-billboard.jpg"); // adjust path if needed
+  //   const fakeUri = Image.resolveAssetSource(fakeImage).uri;
 
+  //   router.push(
+  //     `/ReportSubmission?imageUrl=${encodeURIComponent(fakeUri)}&fake=1`
+  //   );
+  // };
 
   // ✅ Success screen
+
   if (uploadSuccess) {
     return (
-      <View style={styles.previewContainer}>
-        <Text style={styles.successText} className="font-montserrat">✅ Image uploaded successfully!</Text>
+      <View className="flex-1 bg-text-primary">
+        {/* Center content vertically */}
+        <View className="flex-1 items-center justify-center px-6">
+          {/* Card */}
+          <View className="w-full bg-white rounded-3xl border border-neutral-200 shadow-lg p-5">
+            {/* Success badge */}
+            <View className="w-14 h-14 rounded-full bg-emerald-100 items-center justify-center self-center mb-3">
+              <Ionicons name="checkmark" size={28} color="#059669" />
+            </View>
 
-        <View style={styles.successControls}>
-          <TouchableOpacity
-            style={styles.proceedButton}
-            onPress={() => {
-              setUploadSuccess(false);
-              setImage(null);
-              setShowCamera(true);
-              router.push(
-                `/ReportSubmission?imageUrl=${encodeURIComponent(
-                  uploadedImageURL ?? ""
-                )}`
-              );
-            }}
-          >
-            <Ionicons name="document-text" size={20} color="white" />
-            <Text style={styles.proceedButtonText} className="font-montserrat">
-              Go to Report Submission
+            {/* Heading + Subtext */}
+            <Text className="text-2xl text-neutral-900 text-center font-montserratBold">
+              Image uploaded successfully!
             </Text>
-          </TouchableOpacity>
+            <Text className="text-sm text-neutral-500 text-center mt-1 font-montserrat">
+              Your photo is ready. Continue to submit a report or retake the
+              image.
+            </Text>
 
-          <TouchableOpacity
-            style={styles.retakeButton}
-            onPress={() => {
-              setUploadSuccess(false);
-              retakePhoto();
-            }}
-          >
-            <Ionicons name="camera" size={20} color="#666" />
-            <Text style={styles.retakeButtonText} className="font-montserrat">Retake</Text>
-          </TouchableOpacity>
+            {/* Actions */}
+            <View className="mt-5">
+              {/* Proceed */}
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Go to Report Submission"
+                onPress={() => {
+                  setUploadSuccess(false);
+                  setImage(null);
+                  setShowCamera(true);
+                  router.push(
+                    `/ReportSubmission?imageUrl=${encodeURIComponent(
+                      uploadedImageURL ?? ""
+                    )}`
+                  );
+                }}
+                activeOpacity={0.9}
+                className="w-full rounded-full bg-primary-main py-4 flex-row items-center justify-center"
+              >
+                <Ionicons name="document-text-outline" size={20} color="#fff" />
+                <Text className="ml-2 text-white text-base tracking-wide font-montserratBold">
+                  Go to Report Submission
+                </Text>
+              </TouchableOpacity>
+
+              {/* Retake */}
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Retake Photo"
+                onPress={() => {
+                  setUploadSuccess(false);
+                  retakePhoto();
+                }}
+                activeOpacity={0.9}
+                className="w-full rounded-full bg-neutral-100 border border-neutral-200 py-4 flex-row items-center justify-center mt-3"
+              >
+                <Ionicons name="camera-outline" size={20} color="#111827" />
+                <Text className="ml-2 text-neutral-900 text-base font-montserratBold">
+                  Retake
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </View>
     );
@@ -287,17 +315,25 @@ export default function Camera() {
           resizeMode="contain"
         />
         <View style={styles.previewControls}>
-          <TouchableOpacity 
-            style={styles.retakeButton} 
+          <TouchableOpacity
+            style={styles.retakeButton}
             onPress={retakePhoto}
             activeOpacity={0.8}
           >
-            <Ionicons name="camera" size={20} color="#EF4444" /> 
-            <Text style={styles.retakeButtonText} className="font-montserratBold">Retake</Text>
+            <Ionicons name="camera" size={20} color="#EF4444" />
+            <Text
+              style={styles.retakeButtonText}
+              className="font-montserratBold"
+            >
+              Retake
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.proceedButton, status === "loading" && styles.proceedButtonDisabled]}
+            style={[
+              styles.proceedButton,
+              status === "loading" && styles.proceedButtonDisabled,
+            ]}
             onPress={submitPhoto}
             disabled={status === "loading"}
             activeOpacity={0.8}
@@ -307,11 +343,15 @@ export default function Camera() {
             ) : (
               <>
                 <Ionicons name="checkmark" size={20} color="white" />
-                <Text style={styles.proceedButtonText} className="font-montserratBold">Submit</Text>
+                <Text
+                  style={styles.proceedButtonText}
+                  className="font-montserratBold"
+                >
+                  Submit
+                </Text>
               </>
             )}
           </TouchableOpacity>
-
         </View>
         {status === "failed" && error && (
           <Text style={styles.errorText}>{error}</Text>
@@ -322,7 +362,9 @@ export default function Camera() {
 
   return (
     <View style={styles.loadingContainer}>
-      <Text style={styles.loadingText} className="font-montserrat">Camera not available</Text>
+      <Text style={styles.loadingText} className="font-montserrat">
+        Camera not available
+      </Text>
     </View>
   );
 }
@@ -404,7 +446,7 @@ const styles = StyleSheet.create({
   },
   preview: {
     padding: 30,
-    marginBottom:20,
+    marginBottom: 20,
     // width/height applied inline based on aspect ratio
   },
   previewControls: {
