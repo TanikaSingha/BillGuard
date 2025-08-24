@@ -1,5 +1,11 @@
 import { refreshLocation } from "@/lib/Slices/locationSlice";
-import { submitReport } from "@/lib/Slices/reportSlice"; // <-- thunk
+import {
+  resetReport,
+  setEstimatedDistance,
+  setIssueDescription,
+  setUserOverrideVerdict,
+  submitReport,
+} from "@/lib/Slices/reportSlice";
 import apiRequest from "@/lib/utils/apiRequest";
 import { AppDispatch, RootState } from "@/store/store";
 import { useRouter } from "expo-router";
@@ -36,16 +42,15 @@ export default function ReportSubmissionDemo() {
   const imageUrl = searchParams.get("imageUrl");
   const decodedImageUrl = imageUrl ? decodeURIComponent(imageUrl) : "";
   const { location } = useSelector((state: RootState) => state.location);
-  const { exifData } = useSelector((state: RootState) => state.report);
+  const {
+    exifData,
+    issueDescription,
+    violationType,
+    estimatedDistance,
+    userOverrideVerdict,
+    submitting,
+  } = useSelector((state: RootState) => state.report);
 
-  const [issueDescription, setIssueDescription] = useState("");
-  const [violationType, setViolationType] = useState<string[]>([
-    violationOptions[0],
-  ]);
-  const [estimatedDistance, setEstimatedDistance] = useState(""); // user input (meters)
-  const [customVerdict, setCustomVerdict] = useState<string>("unsure"); // user override
-
-  const [submitting, setSubmitting] = useState(false);
   const [loadingAi, setLoadingAi] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<any | null>(null);
@@ -55,20 +60,18 @@ export default function ReportSubmissionDemo() {
     try {
       setLoadingAi(true);
       setAiError(null);
-
       const loc = await dispatch(refreshLocation()).unwrap();
       const res = await apiRequest.post("/model/analyze", {
         url: decodedImageUrl,
         location: loc,
-        exifData: exifData, // only used for analysis
-        estimatedDistance: Number(estimatedDistance) || null, // help AI refine
+        exifData: exifData,
+        estimatedDistance: Number(estimatedDistance) || null,
       });
 
       if (res.data.status === "success") {
         setVerdict(res.data.verdict);
-        // Default custom verdict = AI verdict
         if (res.data.verdict?.aiAnalysis?.verdict) {
-          setCustomVerdict(res.data.verdict.aiAnalysis.verdict);
+          dispatch(setUserOverrideVerdict(res.data.verdict.aiAnalysis.verdict));
         }
       } else {
         throw new Error("AI analysis failed");
@@ -85,33 +88,40 @@ export default function ReportSubmissionDemo() {
   // Submit Final Report
   const handleSubmit = async () => {
     try {
-      setSubmitting(true);
-
       const payload = {
         imageURL: decodedImageUrl,
         annotatedURL: verdict?.annotatedImageUrl || "",
         issueDescription,
-        violationType,
-        location,
-        suspectedDimensions: verdict?.details || null,
+        violationType: verdict?.violations || null,
+        location: location?.coords
+          ? {
+              type: "Point",
+              coordinates: [
+                location.coords.longitude,
+                location.coords.latitude,
+              ],
+            }
+          : null,
+        suspectedDimensions: verdict?.details
+          ? { width: verdict.details.width, height: verdict.details.height }
+          : null,
         qrCodeDetected: verdict?.qrCodeDetected || false,
-        licenseId: verdict?.licenseId || null,
-        // ✅ do NOT include exifData here
         aiAnalysis: {
-          verdict: customVerdict,
+          verdict: userOverrideVerdict,
           confidence: verdict?.aiAnalysis?.confidence || 0,
           detectedObjects: verdict?.aiAnalysis?.detectedObjects || [],
         },
       };
       console.log(payload);
-
-      // await dispatch(submitReport(payload)).unwrap();
+      await dispatch(submitReport(payload)).unwrap();
       Alert.alert("Success", "Your report has been submitted successfully!");
-      router.push("/(tabs)");
+      dispatch(resetReport());
+      router.push({
+        pathname: "/(tabs)/reports",
+        params: { fromSubmission: "true" },
+      });
     } catch (err: any) {
       Alert.alert("Error", err.message || "Failed to submit report");
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -146,8 +156,12 @@ export default function ReportSubmissionDemo() {
         }}
         placeholder="Enter estimated distance"
         keyboardType="numeric"
-        value={estimatedDistance}
-        onChangeText={setEstimatedDistance}
+        value={
+          estimatedDistance !== null && estimatedDistance !== undefined
+            ? String(estimatedDistance)
+            : ""
+        }
+        onChangeText={(text) => dispatch(setEstimatedDistance(Number(text)))}
       />
 
       {/* 🔹 AI Analysis Button */}
@@ -211,7 +225,7 @@ export default function ReportSubmissionDemo() {
 
           <Text style={{ marginTop: 10, fontWeight: "600" }}>Violations:</Text>
           {Array.isArray(verdict.violations) &&
-            verdict.violations[0]?.violations?.map((v: string, idx: number) => (
+            verdict.violations.map((v: string, idx: number) => (
               <Text key={idx} style={{ color: "red" }}>
                 • {v}
               </Text>
@@ -244,11 +258,19 @@ export default function ReportSubmissionDemo() {
             marginBottom: 5,
             borderRadius: 8,
             borderWidth: 1,
-            borderColor: customVerdict === opt ? "#6c3ef4" : "#ccc",
+            borderColor: userOverrideVerdict === opt ? "#6c3ef4" : "#ccc",
           }}
-          onPress={() => setCustomVerdict(opt)}
+          onPress={() =>
+            dispatch(
+              setUserOverrideVerdict(
+                opt as "unauthorized" | "authorized" | "unsure"
+              )
+            )
+          }
         >
-          <Text style={{ color: customVerdict === opt ? "#6c3ef4" : "#333" }}>
+          <Text
+            style={{ color: userOverrideVerdict === opt ? "#6c3ef4" : "#333" }}
+          >
             {opt}
           </Text>
         </TouchableOpacity>
@@ -270,7 +292,7 @@ export default function ReportSubmissionDemo() {
         placeholder="Describe the issue"
         multiline
         value={issueDescription}
-        onChangeText={setIssueDescription}
+        onChangeText={(text) => dispatch(setIssueDescription(text))}
       />
 
       {/* 🔹 Submit Report */}
