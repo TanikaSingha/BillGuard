@@ -15,6 +15,7 @@ const getModelResponse = async (req, res) => {
         coords: { latitude, longitude },
       },
       exifData,
+      estimatedDistance,
     } = req.body;
     const response = await axios.post(
       "http://127.0.0.1:8000/predict_from_url/",
@@ -23,7 +24,7 @@ const getModelResponse = async (req, res) => {
     if (!response) throw new Error("No response from AI model service!");
 
     const annotatedImageUrl = response.data.annotated_image_url;
-    // const hoardingDimensions = calculateBillboardDimensions(exifData);
+    // const hoardingDimensions = calculateBillboardDimensions(exifData, estimatedDistance);
     const hoardingDimensions = {};
     const hoardings = [
       {
@@ -41,7 +42,7 @@ const getModelResponse = async (req, res) => {
       annotatedImageUrl,
       location: { latitude, longitude },
       details: hoardings[0],
-      violations: evaluation.results[0].violations,
+      violations: evaluation.results[0].violationType,
       aiAnalysis: evaluation.results[0].aiAnalysis,
     };
 

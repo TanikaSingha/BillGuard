@@ -40,8 +40,8 @@ const reportSchema = new mongoose.Schema({
       type: [Number],
       required: true,
     },
-    address: { type: String },
-    zoneId: { type: String },
+    address: { type: String, default: "N/A" },
+    zoneId: { type: String, default: "N/A" },
   },
   //compliance data
   suspectedDimensions: {

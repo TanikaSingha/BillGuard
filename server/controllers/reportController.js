@@ -48,10 +48,13 @@ const getAllReports = async (req, res) => {
 };
 
 const createReport = async (req, res) => {
+  console.log("Called createReport");
+
   const { id, role } = req.user;
   const {
     issueDescription,
     imageURL,
+    annotatedURL,
     violationType,
     location,
     ...extraFields
@@ -66,6 +69,7 @@ const createReport = async (req, res) => {
   const requiredFields = {
     issueDescription,
     imageURL,
+    annotatedURL,
     violationType,
     location,
   };
@@ -82,16 +86,17 @@ const createReport = async (req, res) => {
   const sanitizedReport = {
     issueDescription: issueDescription.trim(),
     imageURL: imageURL.trim(),
-    violationType: violationType.trim(),
-    location: location.trim(),
+    annotatedURL: annotatedURL.trim(),
+    violationType: violationType,
+    location: location,
     reportedBy: id,
     ...extraFields,
   };
 
   const report = await Report.create(sanitizedReport);
+  console.log(report);
 
   return res.status(StatusCodes.CREATED).json({
-    success: true,
     data: report,
     message: "Report created successfully.",
   });
@@ -147,15 +152,98 @@ const updateReport = async (req, res) => {
       });
     }
   }
-
   return res.status(StatusCodes.OK).json({
     data: updatedReport,
     message: "Report updated successfully.",
   });
 };
 
+const getReportsByUser = async (req, res) => {
+  const { userId } = req.params;
+  const { role, id } = req.user;
+
+  if (role === "NormalUser" && id !== userId) {
+    throw new Unauthorized("You can only fetch your own reports.");
+  }
+  const {
+    violationType,
+    status,
+    startDate,
+    verdict,
+    endDate,
+    page = 1,
+    limit = 10,
+  } = req.query;
+
+  const query = { reportedBy: userId };
+
+  if (violationType) {
+    query.violationType = violationType;
+  }
+
+  if (status) {
+    query.status = status;
+  }
+  if (verdict) {
+    query["aiAnalysis.verdict"] = verdict;
+  }
+
+  if (startDate || endDate) {
+    query.createdAt = {};
+    if (startDate) query.createdAt.$gte = new Date(startDate);
+    if (endDate) query.createdAt.$lte = new Date(endDate);
+  }
+
+  const pageNumber = parseInt(page, 10) || 1;
+  const pageSize = parseInt(limit, 10) || 10;
+  const skip = (pageNumber - 1) * pageSize;
+
+  const reports = await Report.find(query)
+    .populate("reportedBy", "username email role")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(pageSize);
+
+  const totalReports = await Report.countDocuments(query);
+
+  res.status(StatusCodes.OK).json({
+    data: reports,
+    total: totalReports,
+    page: pageNumber,
+    totalPages: Math.ceil(totalReports / pageSize),
+    message: "User reports fetched successfully.",
+  });
+};
+
+const getReportById = async (req, res) => {
+  const { reportId } = req.params;
+  const { id, role } = req.user;
+  if (role === "NormalUser" && id !== userId) {
+    throw new Unauthorized("You can only fetch your own reports.");
+  }
+  const report = await Report.findById(reportId).populate("reportedBy");
+  if (!report) {
+    return res.status(StatusCodes.NOT_FOUND).json({
+      message: `No report found with id: ${reportId}`,
+    });
+  }
+
+  if (report.reportedBy._id.toString() !== id && role !== "AdminUser") {
+    return res.status(StatusCodes.FORBIDDEN).json({
+      message: "You do not have permission to view this report.",
+    });
+  }
+
+  return res.status(StatusCodes.OK).json({
+    data: report,
+    message: "Report fetched successfully.",
+  });
+};
+
 module.exports = {
   getAllReports,
   createReport,
+  getReportsByUser,
+  getReportById,
   updateReport,
 };

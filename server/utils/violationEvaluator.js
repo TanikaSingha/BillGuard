@@ -1,42 +1,46 @@
 const checkRestrictedZone = require("./checkRestrictedZone");
 
-const evaluateHoardingViolations = async (hoardings) => {
+const evaluateHoardingViolations = async (hoardings = []) => {
   const results = [];
 
   for (const h of hoardings) {
-    const hoardingResult = { violations: [] };
+    const violationCodes = []; // enum-friendly values
     const detectedObjects = [];
 
+    const width = Number(h.width);
+    const height = Number(h.height);
+    const angle = Number(h.angle);
+
     // 1️⃣ Size & Angle Checks
-    if (h.width <= 60 || h.height >= 20) {
-      hoardingResult.violations.push("Size not approved");
+    if (width <= 60 || height >= 20) {
+      violationCodes.push("size_violation");
       detectedObjects.push("oversized/undersized hoarding");
     }
 
-    if (h.angle > 30) {
-      hoardingResult.violations.push("Hoarding angle > 30°");
+    if (angle > 30) {
+      violationCodes.push("structural_hazard"); // misuse angle as hazard
       detectedObjects.push("improper angle");
     }
 
-    // 2️⃣ Content Violations (OCR keywords)
+    // 2️⃣ Content Violations (OCR keywords → obscene_content)
     const bannedKeywords = ["alcohol", "drugs", "nudity", "porn", "tobacco"];
     if (Array.isArray(h.ocrText)) {
-      h.ocrText.forEach((ocrItem) => {
+      for (const ocrItem of h.ocrText) {
         const text = ocrItem.text.toLowerCase();
-        bannedKeywords.forEach((word) => {
+        for (const word of bannedKeywords) {
           if (text.includes(word)) {
-            hoardingResult.violations.push(`Content violation: ${word}`);
+            violationCodes.push("obscene_content");
             detectedObjects.push(word);
           }
-        });
-      });
+        }
+      }
     }
 
     // 3️⃣ Dynamic Restricted Zone Check
     if (h.gps) {
       const restrictedMsg = await checkRestrictedZone(h.gps.lat, h.gps.lon);
       if (restrictedMsg) {
-        hoardingResult.violations.push(restrictedMsg);
+        violationCodes.push("illegal_location");
         detectedObjects.push("restricted-zone");
       }
     }
@@ -45,21 +49,17 @@ const evaluateHoardingViolations = async (hoardings) => {
     let verdict = "authorized";
     let confidence = 0.9;
 
-    if (hoardingResult.violations.length > 0) {
+    if (violationCodes.length > 0) {
       verdict = "unauthorized";
-      confidence = 0.95; // high confidence if rules broken
+      confidence = 0.95;
     } else if (detectedObjects.length === 0) {
       verdict = "unsure";
       confidence = 0.5;
     }
 
     results.push({
-      violations: hoardingResult.violations,
-      aiAnalysis: {
-        verdict,
-        confidence,
-        detectedObjects,
-      },
+      violationType: violationCodes,
+      aiAnalysis: { verdict, confidence, detectedObjects },
     });
   }
 
