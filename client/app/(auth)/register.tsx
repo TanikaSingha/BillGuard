@@ -1,4 +1,4 @@
-import { registerUser } from "@/lib/Slices/userSlice";
+import { clearError, registerUser } from "@/lib/Slices/userSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -19,7 +19,13 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useDispatch, useSelector } from "react-redux";
 
-type FormField = "name" | "username" | "email" | "password" | "role";
+type FormField =
+  | "name"
+  | "username"
+  | "email"
+  | "password"
+  | "role"
+  | "adminCode";
 
 const RegisterScreen = () => {
   const [fontsLoaded] = useFonts({
@@ -33,6 +39,7 @@ const RegisterScreen = () => {
     email: "",
     password: "",
     role: "NormalUser",
+    adminCode: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -58,6 +65,7 @@ const RegisterScreen = () => {
     username: <Feather name="user-plus" size={24} color="#6B7280" />,
     email: <Fontisto name="email" size={24} color="#6B7280" />,
     password: <AntDesign name="lock" size={24} color="#6B7280" />,
+    adminCode: <Ionicons name="key" size={24} color="#6B7280" />,
   };
 
   const [containerWidth, setContainerWidth] = useState(0);
@@ -108,46 +116,52 @@ const RegisterScreen = () => {
 
         {/* Input Fields */}
         <View className="w-full">
-          {(["name", "username", "email", "password"] as FormField[]).map(
-            (field) => (
+          {(form.role === "AdminUser"
+            ? ["name", "username", "email", "password", "adminCode"]
+            : ["name", "username", "email", "password"]
+          ).map((field) => {
+            const typedField = field as FormField;
+            return (
               <View
-                key={field}
+                key={typedField}
                 className="flex-row items-center bg-[#F9FAFB] rounded-2xl px-4 py-1 border border-[#E5E7EB] mb-4"
               >
                 <Text className="mr-3 text-lg">
-                  {fieldIcons[field as keyof typeof fieldIcons]}
+                  {fieldIcons[typedField as keyof typeof fieldIcons]}
                 </Text>
                 <TextInput
                   style={[
                     status === "loading" && { backgroundColor: "#f3f4f6" },
                   ]}
                   className="flex-1 text-base text-[#1F2937] font-montserrat"
-                  placeholder={`Enter your ${field}`}
+                  placeholder={`Enter your ${typedField.toLowerCase()}`}
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={
-                    field === "password" ? !showPassword : false
-                  } 
-                  keyboardType={field === "email" ? "email-address" : "default"}
+                    typedField === "password" ? !showPassword : false
+                  }
+                  keyboardType={
+                    typedField === "email" ? "email-address" : "default"
+                  }
                   autoCapitalize="none"
                   editable={status !== "loading"}
-                  value={form[field]}
-                  onChangeText={(val) => handleChange(field, val)}
+                  value={form[typedField]}
+                  onChangeText={(val) => handleChange(typedField, val)}
                 />
                 {/* 👁 Eye toggle only for password */}
-                {field === "password" && (
+                {typedField === "password" && (
                   <TouchableOpacity
                     onPress={() => setShowPassword((prev) => !prev)}
                   >
                     <Ionicons
-                name={showPassword ? "eye" : "eye-off"}
-                size={22}
-                color="#6B7280"
-              />
+                      name={showPassword ? "eye" : "eye-off"}
+                      size={22}
+                      color="#6B7280"
+                    />
                   </TouchableOpacity>
                 )}
               </View>
-            )
-          )}
+            );
+          })}
         </View>
 
         {/* Role Toggle */}
@@ -251,7 +265,10 @@ const RegisterScreen = () => {
           </Text>
           <TouchableOpacity
             disabled={status === "loading"}
-            onPress={() => router.replace("/login")}
+            onPress={() => {
+              dispatch(clearError());
+              router.replace("/login");
+            }}
           >
             <Text className="text-[#6C4FE0] text-sm font-montserratSemiBold ml-2">
               Back to Login

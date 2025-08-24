@@ -130,6 +130,25 @@ export const getReportsByUser = createAsyncThunk<
     }
   }
 );
+
+export const getAllReports = createAsyncThunk<any, void>(
+  "report/getAllReports",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = await SecureStore.getItemAsync("authToken");
+      const response = await apiRequest.get("/report/all", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching all reports:", error);
+      return rejectWithValue("Failed to fetch all reports");
+    }
+  }
+);
+
 const reportSlice = createSlice({
   name: "report",
   initialState,
@@ -192,6 +211,17 @@ const reportSlice = createSlice({
         state.reports = action.payload?.data || [];
       })
       .addCase(getReportsByUser.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload as string;
+      })
+      .addCase(getAllReports.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(getAllReports.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.reports = action.payload?.data || [];
+      })
+      .addCase(getAllReports.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload as string;
       });

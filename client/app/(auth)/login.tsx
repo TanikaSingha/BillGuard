@@ -40,8 +40,10 @@ export default function Login() {
 
   // redirect if user is logged in
   useEffect(() => {
-    if (status === "succeeded" && user) {
+    if (status === "succeeded" && user?.role === "NormalUser") {
       router.replace("/(tabs)");
+    } else if (status === "succeeded" && user?.role === "AdminUser") {
+      router.replace("/(admin)/dashboard");
     }
   }, [status, user, router]);
 
@@ -185,12 +187,11 @@ export default function Login() {
 // import { useDispatch, useSelector } from "react-redux";
 // import type { AppDispatch, RootState } from "../../store/store";
 
-
 // export default function Login() {
 //   const [fontsLoaded] = useFonts({
 //       "Montserrat": require("../../assets/fonts/Montserrat-Regular.ttf"),
 //       "Montserrat-Bold":require("../../assets/fonts/Montserrat-Bold.ttf"),
-//       "Montserrat-SemiBold":require("../../assets/fonts/Montserrat-SemiBold.ttf") 
+//       "Montserrat-SemiBold":require("../../assets/fonts/Montserrat-SemiBold.ttf")
 //     });
 //   const [form, setForm] = useState({ username: "", password: "" });
 //   const { user, status, error } = useSelector((state: RootState) => state.user);
@@ -224,7 +225,7 @@ export default function Login() {
 //     <View className="flex-1 items-center justify-center bg-white p-8 ">
 //         {/* Image */}
 //         <View className="w-32 h-32 justify-center items-center mb-6">
-//           <Image 
+//           <Image
 //             source={require("../../assets/images/login.png")}
 //             className="w-72 h-72"
 //             resizeMode="contain"
@@ -300,9 +301,8 @@ export default function Login() {
 //             {error}
 //           </Text>
 //         )}
-      
+
 //     </View>
 //     </KeyboardAwareScrollView>
 //   );
 // }
-
