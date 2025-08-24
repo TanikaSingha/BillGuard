@@ -1,3 +1,4 @@
+import { setExifData } from "@/lib/Slices/reportSlice";
 import { uploadUserImage } from "@/lib/Slices/userSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
@@ -12,7 +13,7 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  Image, // NEW: to compute screen ratio
+  Image,
   Platform,
   StyleSheet,
   Text,
@@ -41,7 +42,7 @@ export default function Camera() {
   const dispatch = useDispatch<AppDispatch>();
   const { status, error } = useSelector((state: RootState) => state.user);
 
-  // NEW: allow landscape on this screen, lock back to portrait on exit
+  // Unlock orientation while camera is open
   useEffect(() => {
     (async () => {
       try {
@@ -62,37 +63,31 @@ export default function Camera() {
 
   const toggleCameraFacing = () =>
     setFacing((current) => (current === "back" ? "front" : "back"));
-  
+
   const onCameraReady = () => {
-  if (Platform.OS !== "android") return;
+    if (Platform.OS !== "android") return;
 
-  try {
-    // Screen ratio independent of current orientation
-    const { width, height } = Dimensions.get("window");
-    const screenRatio = Math.max(width, height) / Math.min(width, height);
+    try {
+      const { width, height } = Dimensions.get("window");
+      const screenRatio = Math.max(width, height) / Math.min(width, height);
 
-    // Prefer 16:9 on most modern phones; fall back to 4:3 on squarer screens
-    const desiredRatio =
-      Math.abs(16 / 9 - screenRatio) < Math.abs(4 / 3 - screenRatio)
-        ? "16:9"
-        : "4:3";
+      const desiredRatio =
+        Math.abs(16 / 9 - screenRatio) < Math.abs(4 / 3 - screenRatio)
+          ? "16:9"
+          : "4:3";
 
-    // If you keep this in state:
-    setCameraRatio(desiredRatio as any); // <-- TS may want 'any' for CameraView's ratio prop
-  } catch {
-    // no-op; CameraView will use its default ratio if anything goes wrong
-  }
-};
-  
+      setCameraRatio(desiredRatio as any);
+    } catch {
+      // no-op
+    }
+  };
+
   const normalizeAndSet = async (uri: string) => {
     try {
-      // This no-op manipulation rewrites pixels with the correct rotation on Android
-      const normalized = await ImageManipulator.manipulateAsync(
-        uri,
-        [], // no actions
-        { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
-      );
-      // Compute aspect ratio to render with 'contain' without distortion
+      const normalized = await ImageManipulator.manipulateAsync(uri, [], {
+        compress: 1,
+        format: ImageManipulator.SaveFormat.JPEG,
+      });
       await new Promise<void>((resolve, reject) => {
         Image.getSize(
           normalized.uri,
@@ -105,20 +100,24 @@ export default function Camera() {
       });
       setImage(normalized.uri);
       setShowCamera(false);
-    } catch (e) {
-      // Fallback: if anything fails, at least show the original
+    } catch {
       setImage(uri);
       setImageAspectRatio(null);
       setShowCamera(false);
     }
   };
+
   const takePicture = async () => {
     if (!cameraRef.current) return;
     try {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 1 ,skipProcessing: false});
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 1,
+        exif: true,
+        skipProcessing: false,
+      });
       if (photo) {
-        // NEW: fix orientation + compute aspect ratio
         await normalizeAndSet(photo.uri);
+        dispatch(setExifData(photo.exif || {}));
       }
     } catch {
       Alert.alert("Error", "Failed to take picture");
@@ -127,13 +126,15 @@ export default function Camera() {
 
   const openGallery = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: false,
       quality: 1,
+      exif: true,
     });
 
     if (!result.canceled) {
       await normalizeAndSet(result.assets[0].uri);
+      dispatch(setExifData(result.assets[0].exif || {}));
     }
   };
 
@@ -157,7 +158,7 @@ export default function Camera() {
       setUploadedImageURL(url);
       setUploadSuccess(true);
     } catch (err: any) {
-      Alert.alert("Upload Failed", err);
+      Alert.alert("Upload Failed", err?.message || "Something went wrong");
     }
   };
   
@@ -190,7 +191,7 @@ export default function Camera() {
 // };
 
 
-  // ✅ Success screen comes first
+  // ✅ Success screen
   if (uploadSuccess) {
     return (
       <View style={styles.previewContainer}>
@@ -204,7 +205,9 @@ export default function Camera() {
               setImage(null);
               setShowCamera(true);
               router.push(
-                `/ReportSubmission?imageUrl=${encodeURIComponent(uploadedImageURL ?? "")}`
+                `/ReportSubmission?imageUrl=${encodeURIComponent(
+                  uploadedImageURL ?? ""
+                )}`
               );
             }}
           >
@@ -233,9 +236,13 @@ export default function Camera() {
   if (showCamera) {
     return (
       <View style={styles.cameraContainer}>
-        <CameraView style={styles.camera} facing={facing} ref={cameraRef}
-        onCameraReady={onCameraReady}            // <-- use the function above
-        ratio={Platform.OS === "android" ? (cameraRatio as any) : undefined}>
+        <CameraView
+          style={styles.camera}
+          facing={facing}
+          ref={cameraRef}
+          onCameraReady={onCameraReady}
+          ratio={Platform.OS === "android" ? (cameraRatio as any) : undefined}
+        >
           <View style={styles.bottomControls}>
             <TouchableOpacity
               style={styles.galleryButton}
@@ -272,12 +279,9 @@ export default function Camera() {
           style={[
             styles.preview,
             imageAspectRatio
-              ? imageAspectRatio > 1?
-                // Landscape: respect aspect ratio, width 95%
-                { width: "95%", aspectRatio: imageAspectRatio }
-                // Portrait: fix height to 80% of screen
+              ? imageAspectRatio > 1
+                ? { width: "95%", aspectRatio: imageAspectRatio }
                 : { width: "95%", height: "80%" }
-              // Fallback if ratio missing
               : { width: "95%", height: "80%" },
           ]}
           resizeMode="contain"
@@ -332,25 +336,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#000",
   },
-  loadingText: {
-    fontSize: 16,
-    color: "white",
-    fontWeight: "500",
-  },
+  loadingText: { fontSize: 16, color: "white", fontWeight: "500" },
   successText: {
-    fontSize: 18, // slightly bigger for emphasis
-    color: "#28a745", // nicer green (#28a745 is bootstrap success green)
-    fontWeight: "600", // slightly bolder
-    textAlign: "center", // center the text nicely
-    marginBottom: 24, // add space below text for buttons
+    fontSize: 18,
+    color: "#28a745",
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 24,
   },
-
   successControls: {
     flexDirection: "row",
-    justifyContent: "space-around", // space buttons evenly
+    justifyContent: "space-around",
     alignItems: "center",
     paddingHorizontal: 20,
-    gap: 16, // a bit tighter than before
+    gap: 16,
   },
   bottomControls: {
     position: "absolute",
@@ -370,16 +369,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
-  },
-  galleryPreview: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.6)",
   },
   captureButton: {
     width: 80,
@@ -412,7 +401,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     justifyContent: "center",
     alignItems: "center",
-
   },
   preview: {
     padding: 30,
