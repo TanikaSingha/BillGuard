@@ -3,6 +3,7 @@ import { uploadUserImage } from "@/lib/Slices/userSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
+import { useFonts } from "expo-font";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -22,6 +23,11 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 
 export default function Camera() {
+  const [fontsLoaded] = useFonts({
+  "Montserrat": require("../assets/fonts/Montserrat-Regular.ttf"),
+  "Montserrat-Bold": require("../assets/fonts/Montserrat-Bold.ttf"),
+});
+
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [image, setImage] = useState<string | null>(null);
@@ -155,12 +161,42 @@ export default function Camera() {
       Alert.alert("Upload Failed", err?.message || "Something went wrong");
     }
   };
+  
+  
+//   const submitPhoto = async () => {
+//   /*
+//   if (!image) return;
+//   const formData = new FormData();
+//   formData.append("image", {
+//     uri: image,
+//     name: `photo${Date.now()}.jpg`,
+//     type: "image/jpeg",
+//   } as any);
+
+//   try {
+//     const url = await dispatch(uploadUserImage(formData)).unwrap();
+//     setUploadedImageURL(url);
+//     setUploadSuccess(true);
+//   } catch (err: any) {
+//     Alert.alert("Upload Failed", err);
+//   }
+//   */
+
+//   const fakeImage = require("@/assets/images/fake-billboard.jpg"); // adjust path if needed
+//   const fakeUri = Image.resolveAssetSource(fakeImage).uri;
+
+//   router.push(
+//     `/ReportSubmission?imageUrl=${encodeURIComponent(fakeUri)}&fake=1`
+//   );
+// };
+
 
   // ✅ Success screen
   if (uploadSuccess) {
     return (
       <View style={styles.previewContainer}>
-        <Text style={styles.successText}>✅ Image uploaded successfully!</Text>
+        <Text style={styles.successText} className="font-montserrat">✅ Image uploaded successfully!</Text>
+
         <View style={styles.successControls}>
           <TouchableOpacity
             style={styles.proceedButton}
@@ -176,7 +212,7 @@ export default function Camera() {
             }}
           >
             <Ionicons name="document-text" size={20} color="white" />
-            <Text style={styles.proceedButtonText}>
+            <Text style={styles.proceedButtonText} className="font-montserrat">
               Go to Report Submission
             </Text>
           </TouchableOpacity>
@@ -189,7 +225,7 @@ export default function Camera() {
             }}
           >
             <Ionicons name="camera" size={20} color="#666" />
-            <Text style={styles.retakeButtonText}>Retake</Text>
+            <Text style={styles.retakeButtonText} className="font-montserrat">Retake</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -251,25 +287,31 @@ export default function Camera() {
           resizeMode="contain"
         />
         <View style={styles.previewControls}>
-          <TouchableOpacity style={styles.retakeButton} onPress={retakePhoto}>
-            <Ionicons name="camera" size={20} color="#666" />
-            <Text style={styles.retakeButtonText}>Retake</Text>
+          <TouchableOpacity 
+            style={styles.retakeButton} 
+            onPress={retakePhoto}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="camera" size={20} color="#EF4444" /> 
+            <Text style={styles.retakeButtonText} className="font-montserratBold">Retake</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.proceedButton}
+            style={[styles.proceedButton, status === "loading" && styles.proceedButtonDisabled]}
             onPress={submitPhoto}
             disabled={status === "loading"}
+            activeOpacity={0.8}
           >
             {status === "loading" ? (
               <ActivityIndicator color="white" />
             ) : (
               <>
                 <Ionicons name="checkmark" size={20} color="white" />
-                <Text style={styles.proceedButtonText}>Submit</Text>
+                <Text style={styles.proceedButtonText} className="font-montserratBold">Submit</Text>
               </>
             )}
           </TouchableOpacity>
+
         </View>
         {status === "failed" && error && (
           <Text style={styles.errorText}>{error}</Text>
@@ -280,7 +322,7 @@ export default function Camera() {
 
   return (
     <View style={styles.loadingContainer}>
-      <Text style={styles.loadingText}>Camera not available</Text>
+      <Text style={styles.loadingText} className="font-montserrat">Camera not available</Text>
     </View>
   );
 }
@@ -362,7 +404,8 @@ const styles = StyleSheet.create({
   },
   preview: {
     padding: 30,
-    marginBottom: 10,
+    marginBottom:20,
+    // width/height applied inline based on aspect ratio
   },
   previewControls: {
     flexDirection: "row",
@@ -374,25 +417,43 @@ const styles = StyleSheet.create({
   retakeButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 25,
+    justifyContent: "center",
     paddingVertical: 12,
-    borderRadius: 25,
-    backgroundColor: "rgba(255,255,255,0.9)",
+    paddingHorizontal: 18,
+    borderRadius: 30,
+    backgroundColor: "#FEE2E2", // light red background
     borderWidth: 1,
-    borderColor: "#e0e0e0",
-    gap: 8,
+    borderColor: "#EF4444", // red border
+    marginRight: 10,
   },
-  retakeButtonText: { fontSize: 16, fontWeight: "600", color: "#666" },
+  retakeButtonText: {
+    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#EF4444", // red text
+  },
   proceedButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 30,
+    justifyContent: "center",
     paddingVertical: 12,
-    borderRadius: 25,
-    backgroundColor: "#6c3ef4",
-    gap: 8,
+    paddingHorizontal: 18,
+    borderRadius: 30,
+    backgroundColor: "#6C4FE0", // your brand purple
+    shadowColor: "#6C4FE0",
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  proceedButtonText: { fontSize: 16, fontWeight: "600", color: "white" },
+  proceedButtonDisabled: {
+    backgroundColor: "#9CA3AF", // gray when disabled
+  },
+  proceedButtonText: {
+    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "white",
+  },
   errorText: {
     color: "red",
     fontSize: 16,

@@ -93,10 +93,10 @@ export default function Profile() {
       <ScrollView>
        {/* Floating Profile Card */}
       <View className="mt-16 px-5">
-        <View className="bg-surface rounded-3xl px-5 pb-5 pt-10 shadow-xl shadow-primary-dark/20 border border-border">
+        <View className="bg-surface rounded-3xl px-5 pb-5 pt-12 shadow-xl shadow-primary-dark/20 border border-border">
           {/* Avatar */}
           <View className="-mt-24 self-center">
-            <View className="w-32 h-32 rounded-full border-4 border-primary-dark shadow-lg overflow-hidden bg-background">
+            <View className="w-24 h-24 rounded-full border-4 border-primary-dark shadow-lg overflow-hidden bg-background">
               <Image
                 className="w-full h-full"
                 source={require("../../assets/images/profile.png")}
@@ -106,7 +106,7 @@ export default function Profile() {
 
           {/* Name + Role */}
           <View className="mt-2 items-center">
-            <Text className="font-montserratBold text-2xl text-text-primary">
+            <Text className="font-montserratBold text-xl text-text-primary">
               {user.username}
             </Text>
             <View className="mt-2 px-3 py-1 rounded-full bg-primary-main/10 border border-primary-main/30">
@@ -117,7 +117,7 @@ export default function Profile() {
           </View>
 
           {/* Stats */}
-          <View className="mt-6 flex-row justify-between">
+          <View className="mt-6 flex-row justify-between mx-6">
             <View className="flex-1 mx-1 items-center">
               <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
                 <Text className="font-montserratBold text-xl text-text-primary">
@@ -153,48 +153,50 @@ export default function Profile() {
       </View>
 
       {/* Quick Actions */}
+
       <View className="mt-6 px-5">
         <Text className="font-montserratBold text-lg text-text-primary mb-3">
           Quick Actions
         </Text>
 
-        <View className="flex-row flex-wrap justify-between">
+        <View className="flex-row flex-wrap justify-between gap-y-3">
           {/* Badge tile */}
-          <TouchableOpacity className="w-[48%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-4 py-5 items-center justify-center active:opacity-90">
-            <View className="w-12 h-12 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
-              <Ionicons name="ribbon-outline" size={28} color="#6C4FE0" />
+          <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
+            <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
+              <Ionicons name="ribbon-outline" size={24} color="#6C4FE0" />
             </View>
-            <Text className="font-montserrat text-base text-text-primary mt-3 text-center">
+            <Text className="font-montserrat text-sm text-text-primary mt-2 text-center">
               My Badges
             </Text>
           </TouchableOpacity>
 
-          {/* Account Details */}
-          <TouchableOpacity className="w-[48%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-4 py-5 items-center justify-center active:opacity-90">
-            <View className="w-12 h-12 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
-              <Ionicons name="person-outline" size={28} color="#6C4FE0" />
+          {/* Account */}
+          <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
+            <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
+              <Ionicons name="person-outline" size={24} color="#6C4FE0" />
             </View>
-            <Text className="font-montserrat text-base text-text-primary mt-3 text-center">
-              Account Details
+            <Text className="font-montserrat text-sm text-text-primary mt-2 text-center">
+              Account
             </Text>
           </TouchableOpacity>
 
-          {/* My Reports */}
-          <TouchableOpacity className="w-[48%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-4 py-5 items-center justify-center active:opacity-90">
-            <View className="w-12 h-12 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
-              <Ionicons name="document-text-outline" size={28} color="#6C4FE0" />
+          {/* Reports */}
+          <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
+            <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
+              <Ionicons name="document-text-outline" size={24} color="#6C4FE0" />
             </View>
-            <Text className="font-montserrat text-base text-text-primary mt-3 text-center">
-              My Reports
+            <Text className="font-montserrat text-sm text-text-primary mt-2 text-center">
+              Reports
             </Text>
           </TouchableOpacity>
-
+        </View>
+        <View className="flex-row flex-wrap justify-start gap-y-3 gap-x-5">
           {/* About */}
-          <TouchableOpacity className="w-[48%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-4 py-5 items-center justify-center active:opacity-90">
-            <View className="w-12 h-12 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
-              <Ionicons name="information-circle-outline" size={28} color="#6C4FE0" />
+          <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
+            <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
+              <Ionicons name="information-circle-outline" size={24} color="#6C4FE0" />
             </View>
-            <Text className="font-montserrat text-base text-text-primary mt-3 text-center">
+            <Text className="font-montserrat text-sm text-text-primary mt-2 text-center">
               About
             </Text>
           </TouchableOpacity>
@@ -202,7 +204,7 @@ export default function Profile() {
           {/* Logout */}
           <TouchableOpacity
             disabled={status === "loading"}
-            className={`w-[48%] aspect-square rounded-2xl border-2 px-4 py-5 items-center justify-center shadow-md shadow-primary-dark/15 ${
+            className={`w-[30%] aspect-square mb-4 rounded-2xl border px-3 py-4 items-center justify-center shadow-md shadow-primary-dark/15 ${
               status === "loading" ? "bg-text-disabled/20 border-error/40" : "bg-surface border-error"
             }`}
             onPress={async () => {
@@ -213,7 +215,7 @@ export default function Profile() {
             }}
           >
             <View
-              className={`w-12 h-12 items-center justify-center rounded-2xl border mb-2 ${
+              className={`w-10 h-10 items-center justify-center rounded-2xl border mb-2 ${
                 status === "loading"
                   ? "bg-error/10 border-error/30"
                   : "bg-error/10 border-error/40"
@@ -221,20 +223,22 @@ export default function Profile() {
             >
               <Ionicons
                 name="log-out-outline"
-                size={28}
+                size={24}
                 color={status === "loading" ? "#9CA3AF" : "#EF4444"}
               />
             </View>
             <Text
-              className={`font-montserratBold text-base mt-3 ${
+              className={`font-montserratBold text-sm mt-2 ${
                 status === "loading" ? "text-text-disabled" : "text-error"
               }`}
             >
               Logout
             </Text>
           </TouchableOpacity>
-          </View> 
+        </View>
       </View>
+
+
       </ScrollView>
       </SafeAreaView>
     </View>
