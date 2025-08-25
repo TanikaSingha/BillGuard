@@ -3,7 +3,11 @@ const { StatusCodes } = require("http-status-codes");
 const { BadRequest } = require("../errors/index");
 const { link } = require("../routes/authRouter");
 const User = require("../models/userSchema");
+const AdminUser = require("../models/rolesSchema").AdminUser;
+const NormalUser = require("../models/rolesSchema").NormalUser;
 const { default: axios } = require("axios");
+const checkAndAwardBadges = require("../utils/awardBadges");
+const calculateXP = require("../utils/calculateXP");
 
 // Admin can get all reports
 const getAllReports = async (req, res) => {
@@ -63,7 +67,6 @@ const getAllReports = async (req, res) => {
     message: "Reports retrieved successfully.",
   });
 };
-
 
 const createReport = async (req, res) => {
   console.log("Called createReport");
@@ -139,6 +142,7 @@ const createReport = async (req, res) => {
   };
 
   const report = await Report.create(sanitizedReport);
+  await NormalUser.findByIdAndUpdate(id, { $inc: { reportsSubmitted: 1 } });
   console.log("Report created:", report);
 
   return res.status(StatusCodes.CREATED).json({
@@ -151,7 +155,7 @@ const updateReport = async (req, res) => {
   const { id, role } = req.user;
   const { reportId } = req.params;
 
-  const report = await Report.findById(reportId).populate("reportedBy");
+  let report = await Report.findById(reportId).populate("reportedBy");
   if (!report) {
     return res.status(StatusCodes.NOT_FOUND).json({
       message: `No report found with id: ${reportId}`,
@@ -166,39 +170,70 @@ const updateReport = async (req, res) => {
 
   const fields = { ...req.body };
   const oldStatus = report.status;
-
   if (
     role === "AdminUser" &&
     fields.status &&
-    oldStatus === "Pending" &&
-    fields.status !== "Pending"
+    oldStatus === "pending" &&
+    fields.status !== "pending"
   ) {
     fields.reviewedBy = id;
     fields.reviewedAt = new Date();
+
+    if (fields.adminNotes) {
+      fields.adminNotes = fields.adminNotes.trim();
+    }
   }
 
-  let updatedReport = await Report.findByIdAndUpdate(
+  report = await Report.findByIdAndUpdate(
     reportId,
     { $set: fields },
     { new: true, runValidators: true }
   ).populate("reportedBy reviewedBy");
 
-  if (role === "AdminUser" && oldStatus !== updatedReport.status) {
-    if (oldStatus !== "Approved" && updatedReport.status === "Approved") {
-      await User.findByIdAndUpdate(report.reportedBy._id, {
-        $inc: { xp: 50 },
-      });
-    } else if (
-      oldStatus === "Approved" &&
-      updatedReport.status !== "Approved"
+  if (role === "AdminUser" && oldStatus !== report.status) {
+    let newXP = 0;
+
+    if (
+      report.status === "verified_unauthorized" ||
+      report.status === "verified_authorized"
     ) {
-      await User.findByIdAndUpdate(report.reportedBy._id, {
-        $inc: { xp: -50 },
+      newXP = calculateXP(report);
+    }
+
+    const xpDiff = newXP - (report.xpAwarded || 0);
+
+    if (xpDiff !== 0) {
+      await NormalUser.findByIdAndUpdate(report.reportedBy._id, {
+        $inc: { xp: xpDiff },
       });
+      report.xpAwarded = newXP;
+      await checkAndAwardBadges(report.reportedBy, { report });
+      await report.save();
+    }
+    console.log("There");
+
+    if (report.reviewedBy) {
+      if (
+        report.status === "verified_unauthorized" ||
+        report.status === "verified_authorized"
+      ) {
+        console.log("Here");
+        await AdminUser.findByIdAndUpdate(report.reviewedBy, {
+          $inc: { verifiedReports: 1 },
+        });
+        await NormalUser.findByIdAndUpdate(report.reportedBy._id, {
+          $inc: { reportsVerified: 1 },
+        });
+      } else if (report.status === "rejected") {
+        await AdminUser.findByIdAndUpdate(report.reviewedBy, {
+          $inc: { rejectedReports: 1 },
+        });
+      }
     }
   }
+
   return res.status(StatusCodes.OK).json({
-    data: updatedReport,
+    data: report,
     message: "Report updated successfully.",
   });
 };
@@ -245,7 +280,7 @@ const getReportsByUser = async (req, res) => {
 
   const reports = await Report.find(query)
     .populate("reportedBy", "username email role")
-    .sort({ createdAt: -1 })
+    .sort({ submittedAt: -1 })
     .skip(skip)
     .limit(pageSize);
 

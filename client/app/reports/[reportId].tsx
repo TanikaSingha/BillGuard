@@ -1,6 +1,8 @@
 import apiRequest from "@/lib/utils/apiRequest";
 import { RootState } from "@/store/store";
 import { FontAwesome } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
@@ -9,6 +11,7 @@ import {
   Image,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -21,6 +24,29 @@ const ReportDetails = () => {
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [status, setStatus] = useState(report?.status || "pending");
+  const [adminNotes, setAdminNotes] = useState(report?.adminNotes || "");
+  const [saving, setSaving] = useState(false);
+
+  const handleAdminUpdate = async () => {
+    try {
+      setSaving(true);
+      const token = await SecureStore.getItemAsync("authToken");
+      const res = await apiRequest.patch(
+        `/report/update/${reportId}`,
+        { status, adminNotes },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setReport(res.data.data);
+      goBackByRole();
+    } catch (err: any) {
+      console.error("Admin update failed", err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const formatSubmittedAt = (dateLike: string | number | Date) => {
     const d = new Date(dateLike);
@@ -105,7 +131,7 @@ const ReportDetails = () => {
   return (
     <View className="flex-1 bg-slate-50">
       {/* Top Bar */}
-      <View className="bg-sky-700 px-4 py-3 shadow-lg shadow-sky-900/30 border-b border-sky-600">
+      <View className="bg-primary-dark px-4 py-3 shadow-lg">
         <View className="flex-row items-center">
           <TouchableOpacity
             onPress={goBackByRole}
@@ -123,7 +149,7 @@ const ReportDetails = () => {
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 28 }}>
         {/* Report ID */}
         <View className="bg-white rounded-xl px-4 py-3 mb-4 shadow-sm border border-slate-200/60">
-          <Text className="text-xs text-slate-500 uppercase tracking-wider">
+          <Text className="text-xs text-slate-500 uppercase font-montserrat tracking-wider">
             Report ID
           </Text>
           <Text className="font-montserratBold text-base text-slate-800 mt-1 select-all">
@@ -146,7 +172,7 @@ const ReportDetails = () => {
                   className="w-full h-52 rounded-2xl bg-slate-200"
                   resizeMode="cover"
                 />
-                <Text className="text-sm text-slate-600 mt-2 text-center">
+                <Text className="text-sm text-slate-600 mt-2 text-center font-montserrat">
                   {m.caption}
                 </Text>
               </View>
@@ -202,28 +228,195 @@ const ReportDetails = () => {
         {/* Accordion sections */}
         <View className="bg-white p-5 rounded-2xl shadow-sm">
           <AccordionItem title="Issue Description" defaultOpen>
-            <Text className="text-base text-slate-800 leading-6">
+            <Text className="font-montserrat text-base text-slate-800 leading-6">
+              {" "}
               {report.issueDescription}
             </Text>
           </AccordionItem>
+
+          {/* change */}
           <AccordionItem title="Violation Type" defaultOpen>
-            <Text className="text-base text-slate-800">
+            <Text className="font-montserrat text-base text-slate-800 leading-6">
               {formatViolations(report.violationType)}
             </Text>
           </AccordionItem>
+
           <AccordionItem title="Reported By">
-            <Text className="text-base text-slate-800">
+            <Text className="font-montserrat text-base text-slate-800">
               {report.reportedBy?.username} ({report.reportedBy?.email})
             </Text>
           </AccordionItem>
+
+          {/* change */}
           <AccordionItem title="Submitted At">
-            <Text className="text-base text-slate-800">
+            <Text className="font-montserrat text-base text-slate-800">
               {report?.submittedAt
                 ? formatSubmittedAt(report.submittedAt)
                 : "—"}
             </Text>
           </AccordionItem>
+
+          <AccordionItem title="Location">
+            <View>
+              <Text className="font-montserrat text-base text-slate-800">
+                {report.location?.address || "N/A"}
+              </Text>
+              {!!report.location?.coordinates?.length && (
+                <View className="flex-row items-center mt-1">
+                  <FontAwesome name="map-marker" size={14} color="#334155" />
+                  <Text className="font-montserrat ml-2 text-sm text-slate-600">
+                    {report.location?.coordinates?.join(", ")}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </AccordionItem>
+
+          <AccordionItem title="Suspected Dimensions">
+            <Text className="font-montserrat text-base text-slate-800">
+              Height: {report.suspectedDimensions?.height} | Width:
+              {report.suspectedDimensions?.width}
+            </Text>
+          </AccordionItem>
+
+          {/* add qr code detected */}
+          <AccordionItem title="QR Code Detected">
+            <Text className="font-montserrat text-base text-slate-800">
+              {report.qrCodeDetected ? "Yes" : "No"}
+            </Text>
+          </AccordionItem>
+
+          <AccordionItem title="AI Analysis" defaultOpen>
+            {/* Verdict row with icon */}
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-row items-center">
+                <FontAwesome
+                  name={
+                    report.aiAnalysis?.verdict?.toLowerCase() === "violation"
+                      ? "exclamation-circle"
+                      : "check-circle"
+                  }
+                  size={18}
+                  color={
+                    report.aiAnalysis?.verdict?.toLowerCase() === "violation"
+                      ? "#ef4444"
+                      : "#10b981"
+                  }
+                />
+                <Text className="ml-2 font-montserratBold text-base text-slate-900">
+                  {report.aiAnalysis?.verdict || "N/A"}
+                </Text>
+              </View>
+            </View>
+
+            {/* Confidence gradient bar */}
+            <View className="mb-4">
+              <Text className="font-montserrat text-xs text-slate-500 uppercase tracking-wider mb-1">
+                Confidence
+              </Text>
+              <View className="h-3 w-full rounded-full bg-slate-200 overflow-hidden">
+                <LinearGradient
+                  colors={["#38bdf8", "#8b5cf6"]} // sky → violet
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      Math.max(0, (report.aiAnalysis?.confidence ?? 0) * 100)
+                    )}%`,
+                    height: "100%",
+                    borderRadius: 999,
+                  }}
+                />
+              </View>
+              <Text className="font-montserrat text-sm text-slate-700 mt-1">
+                {((report.aiAnalysis?.confidence ?? 0) * 100).toFixed(2)}%
+              </Text>
+            </View>
+
+            {/* Detected objects (subtle chips for readability) */}
+            <View className="mt-1">
+              <Text className="font-montserrat text-xs text-slate-500 uppercase tracking-wider mb-1">
+                Detected Objects
+              </Text>
+              {Array.isArray(report.aiAnalysis?.detectedObjects) &&
+              report.aiAnalysis.detectedObjects.length > 0 ? (
+                <View className="flex-row flex-wrap gap-2">
+                  {report.aiAnalysis.detectedObjects.map(
+                    (obj: string, i: number) => (
+                      <View
+                        key={`${obj}-${i}`}
+                        className="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200"
+                      >
+                        <Text className="font-montserrat text-xs text-slate-700">
+                          {toSentence(obj)}
+                        </Text>
+                      </View>
+                    )
+                  )}
+                </View>
+              ) : (
+                <Text className="font-montserrat text-base text-slate-800">
+                  —
+                </Text>
+              )}
+            </View>
+          </AccordionItem>
         </View>
+
+        {user?.role === "AdminUser" && (
+          <View className="bg-white rounded-2xl p-4 shadow-sm mt-5">
+            <Text className="font-montserratBold text-lg text-slate-900 mb-3">
+              Admin Actions
+            </Text>
+
+            {/* Status dropdown */}
+            <Text className="text-slate-700 font-montserrat mb-1">
+              Change Status
+            </Text>
+            <View className="border border-slate-300 rounded-xl mb-4">
+              <Picker
+                selectedValue={status}
+                onValueChange={(val) => setStatus(val)}
+              >
+                <Picker.Item label="Pending" value="pending" />
+                <Picker.Item
+                  label="Verified Unauthorized"
+                  value="verified_unauthorized"
+                />
+                <Picker.Item
+                  label="Verified Authorized"
+                  value="verified_authorized"
+                />
+                <Picker.Item label="Rejected" value="rejected" />
+              </Picker>
+            </View>
+
+            {/* Admin Notes */}
+            <Text className="text-slate-700 font-montserrat mb-1">
+              Admin Notes
+            </Text>
+            <TextInput
+              multiline
+              value={adminNotes}
+              onChangeText={setAdminNotes}
+              placeholder="Write your notes..."
+              className="border border-slate-300 rounded-xl px-3 py-2 text-slate-800 font-montserrat mb-4"
+              style={{ minHeight: 80 }}
+            />
+
+            {/* Save button */}
+            <TouchableOpacity
+              onPress={handleAdminUpdate}
+              disabled={saving}
+              className="bg-sky-600 px-5 py-3 rounded-2xl shadow-sm active:opacity-90"
+            >
+              <Text className="text-white font-semibold text-center text-base">
+                {saving ? "Saving..." : "Save Changes"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -282,7 +475,9 @@ const StatCard = ({
   <View className={`flex-1 rounded-xl px-3 py-3 ${containerClass}`}>
     <View className="flex-row items-center justify-center">
       {icon}
-      <Text className="ml-2 text-xs font-semibold text-slate-600">{label}</Text>
+      <Text className="ml-2 text-xs font-montserratBold text-slate-600">
+        {label}
+      </Text>
     </View>
     <Text className="mt-1.5 text-2xl text-center font-montserratBold text-slate-900">
       {value}
