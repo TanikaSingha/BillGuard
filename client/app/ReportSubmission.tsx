@@ -87,8 +87,6 @@ export default function ReportSubmissionDemo() {
     }
   };
 
-  // fake one
-
   // const handleAiAnalysis = async () => {
   //   try {
   //     setLoadingAi(true);
@@ -393,8 +391,14 @@ export default function ReportSubmissionDemo() {
                 </Text>
                 <View className="flex-row flex-wrap gap-3">
                   {[
-                    { key: "yes", label: "Yes" },
-                    { key: "no", label: "No" },
+                    { key: verdict.aiAnalysis.verdict, label: "Yes" },
+                    {
+                      key:
+                        verdict.aiAnalysis.verdict === "unauthorized"
+                          ? "authorized"
+                          : "unauthorized",
+                      label: "No",
+                    },
                     { key: "unsure", label: "Not Sure" },
                   ].map((opt) => {
                     const selected = userOverrideVerdict === opt.key;
