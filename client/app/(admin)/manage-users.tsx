@@ -1,4 +1,5 @@
 import apiRequest from "@/lib/utils/apiRequest";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
@@ -54,7 +55,6 @@ const ManageUsers = () => {
   }, [status, page]);
 
   const renderUser = ({ item }: { item: any }) => {
-
     const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=6c3ef4&color=fff`;
 
     return (
@@ -123,116 +123,128 @@ const ManageUsers = () => {
   };
 
   return (
-    <View style={{ flex: 1, padding: 20, backgroundColor: "#f8f9fb" }}>
-      <Text style={{ fontSize: 24, fontWeight: "700", marginBottom: 15 }}>
-        👥 Manage Users
-      </Text>
-
-      {/* Search Bar */}
-      <TextInput
-        placeholder="🔍 Search by name, username, or email"
-        value={search}
-        onChangeText={setSearch}
-        onSubmitEditing={() => {
-          setPage(1);
-          fetchUsers();
-        }}
-        style={{
-          backgroundColor: "#fff",
-          padding: 12,
-          borderRadius: 12,
-          marginBottom: 15,
-          borderWidth: 1,
-          borderColor: "#ddd",
-        }}
-      />
-
-      {/* Filters */}
-      <View style={{ flexDirection: "row", marginBottom: 15 }}>
-        {["all", "active", "inactive", "deleted"].map((s) => (
-          <TouchableOpacity
-            key={s}
-            onPress={() => {
-              setStatus(s === "all" ? null : s);
-              setPage(1);
-            }}
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 15,
-              marginRight: 10,
-              borderRadius: 20,
-              backgroundColor:
-                status === s || (s === "all" && !status) ? "#6c3ef4" : "#eee",
-            }}
-          >
-            <Text
-              style={{
-                color:
-                  status === s || (s === "all" && !status) ? "#fff" : "#333",
-                fontWeight: "600",
-              }}
-            >
-              {s.toUpperCase()}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* User List */}
-      {loading ? (
-        <ActivityIndicator size="large" color="#6c3ef4" />
-      ) : error ? (
-        <Text style={{ color: "red" }}>{error}</Text>
-      ) : (
-        <FlatList
-          data={users}
-          keyExtractor={(item) => item._id}
-          renderItem={renderUser}
-        />
-      )}
-
-      {/* Pagination */}
+    <View className="flex-1 bg-background">
       <View
+        className="bg-primary-dark px-4 py-5 shadow-lg shadow-primary-dark/40 border-b border-primary-main/30"
         style={{
-          flexDirection: "row",
-          justifyContent: "center",
-          marginTop: 15,
-          gap: 10,
+          zIndex: 10,
+          elevation: 10,
         }}
       >
-        <TouchableOpacity
-          disabled={page === 1}
-          onPress={() => setPage((p) => Math.max(1, p - 1))}
+        <View className="flex-row items-center space-x-4">
+          <Ionicons name="people-outline" size={24} color="#FFFFFF" />
+          <Text className="ml-2 font-montserratBold text-xl text-white tracking-wide">
+            Manage Users
+          </Text>
+        </View>
+      </View>
+      <View className="p-4">
+        {/* Search Bar */}
+        <TextInput
+          placeholder="🔍 Search by name, username, or email"
+          value={search}
+          onChangeText={setSearch}
+          onSubmitEditing={() => {
+            setPage(1);
+            fetchUsers();
+          }}
           style={{
-            backgroundColor: page === 1 ? "#ccc" : "#6c3ef4",
-            paddingVertical: 8,
-            paddingHorizontal: 15,
-            borderRadius: 8,
+            backgroundColor: "#fff",
+            padding: 12,
+            borderRadius: 12,
+            marginBottom: 15,
+            borderWidth: 1,
+            borderColor: "#ddd",
+          }}
+        />
+
+        {/* Filters */}
+        <View style={{ flexDirection: "row", marginBottom: 15 }}>
+          {["all", "active", "inactive", "deleted"].map((s) => (
+            <TouchableOpacity
+              key={s}
+              onPress={() => {
+                setStatus(s === "all" ? null : s);
+                setPage(1);
+              }}
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 15,
+                marginRight: 10,
+                borderRadius: 20,
+                backgroundColor:
+                  status === s || (s === "all" && !status) ? "#6c3ef4" : "#eee",
+              }}
+            >
+              <Text
+                style={{
+                  color:
+                    status === s || (s === "all" && !status) ? "#fff" : "#333",
+                  fontWeight: "600",
+                }}
+              >
+                {s.toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* User List */}
+        {loading ? (
+          <ActivityIndicator size="large" color="#6c3ef4" />
+        ) : error ? (
+          <Text style={{ color: "red" }}>{error}</Text>
+        ) : (
+          <FlatList
+            data={users}
+            keyExtractor={(item) => item._id}
+            renderItem={renderUser}
+          />
+        )}
+
+        {/* Pagination */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            marginTop: 15,
+            gap: 10,
           }}
         >
-          <Text style={{ color: "white" }}>Prev</Text>
-        </TouchableOpacity>
-        <Text
-          style={{
-            alignSelf: "center",
-            fontWeight: "600",
-            fontSize: 16,
-          }}
-        >
-          Page {page} / {totalPages}
-        </Text>
-        <TouchableOpacity
-          disabled={page === totalPages}
-          onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
-          style={{
-            backgroundColor: page === totalPages ? "#ccc" : "#6c3ef4",
-            paddingVertical: 8,
-            paddingHorizontal: 15,
-            borderRadius: 8,
-          }}
-        >
-          <Text style={{ color: "white" }}>Next</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            disabled={page === 1}
+            onPress={() => setPage((p) => Math.max(1, p - 1))}
+            style={{
+              backgroundColor: page === 1 ? "#ccc" : "#6c3ef4",
+              paddingVertical: 8,
+              paddingHorizontal: 15,
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{ color: "white" }}>Prev</Text>
+          </TouchableOpacity>
+          <Text
+            style={{
+              alignSelf: "center",
+              fontWeight: "600",
+              fontSize: 16,
+            }}
+          >
+            Page {page} / {totalPages}
+          </Text>
+          <TouchableOpacity
+            disabled={page === totalPages}
+            onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
+            style={{
+              backgroundColor: page === totalPages ? "#ccc" : "#6c3ef4",
+              paddingVertical: 8,
+              paddingHorizontal: 15,
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{ color: "white" }}>Next</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

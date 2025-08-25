@@ -551,10 +551,11 @@ const Reports = () => {
           </View>
         </View>
       )}
-      {reports.length > 0 && (
-        <View className="flex-row items-center justify-between mt-6 mb-10">
-          {/* Prev Button */}
-          <TouchableOpacity
+
+      {/* {reports.length > 0 && (
+        <View className="flex-row items-center justify-between mt-6 mb-10"> */}
+      {/* Prev Button */}
+      {/* <TouchableOpacity
             disabled={filters.page === 1}
             onPress={() =>
               setFilters((f) => ({
@@ -575,15 +576,15 @@ const Reports = () => {
             >
               Prev
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
-          {/* Page Indicator */}
-          <Text className="text-sm font-montserrat text-gray-600">
+      {/* Page Indicator */}
+      {/* <Text className="text-sm font-montserrat text-gray-600">
             Page {filters.page}
-          </Text>
+          </Text> */}
 
-          {/* Next Button */}
-          <TouchableOpacity
+      {/* Next Button */}
+      {/* <TouchableOpacity
             disabled={reports.length < filters.limit}
             onPress={() => {
               if (showRecent) {
@@ -611,7 +612,65 @@ const Reports = () => {
             </Text>
           </TouchableOpacity>
         </View>
+      )} */}
+
+      {reports.length > 0 && (
+        <View className="mt-2 mb-2 px-2">
+          <View className="flex-row items-center justify-center gap-3">
+            {/* Prev */}
+            <TouchableOpacity
+              disabled={filters.page === 1}
+              onPress={() =>
+                setFilters((f) => ({ ...f, page: Math.max(1, f.page - 1) }))
+              }
+              className={[
+                "w-10 h-10 rounded-full items-center justify-center border",
+                filters.page === 1
+                  ? "bg-white border-border"
+                  : "bg-primary-main border-primary-main",
+              ].join(" ")}
+              activeOpacity={0.85}
+            >
+              <Ionicons
+                name="chevron-back"
+                size={18}
+                color={filters.page === 1 ? "#9CA3AF" : "#FFFFFF"}
+              />
+            </TouchableOpacity>
+
+            {/* Page indicator */}
+            <Text className="font-montserrat text-sm text-text-secondary">
+              Page{" "}
+              <Text className="font-montserratBold text-text-secondary">
+                {filters.page}
+              </Text>
+            </Text>
+
+            {/* Next */}
+            <TouchableOpacity
+              disabled={reports.length < filters.limit}
+              onPress={() => {
+                if (showRecent) setShowRecent(false);
+                setFilters((f) => ({ ...f, page: f.page + 1 }));
+              }}
+              className={[
+                "w-10 h-10 rounded-full items-center justify-center border",
+                reports.length < filters.limit
+                  ? "bg-white border-border"
+                  : "bg-primary-main border-primary-main",
+              ].join(" ")}
+              activeOpacity={0.85}
+            >
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={reports.length < filters.limit ? "#9CA3AF" : "#FFFFFF"}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
       )}
+
       {status === "loading" ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" />
@@ -619,7 +678,7 @@ const Reports = () => {
       ) : (
         <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
           <ScrollView
-            className="my-6 mx-6"
+            className="mb-10 mt-2 mx-6"
             showsVerticalScrollIndicator={false}
           >
             {/* Recently Submitted */}
