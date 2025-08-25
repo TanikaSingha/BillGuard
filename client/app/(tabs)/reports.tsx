@@ -414,41 +414,54 @@ const Reports = () => {
         <View
           className="absolute right-4 top-20 w-72 rounded-2xl border px-4 py-3 z-50"
           style={{
-            backgroundColor: "#A78BFA", // primary.light
-            borderColor: "#6C4FE0", // primary.main
-            borderWidth: 2,
-            shadowColor: "#4C1D95", // primary.dark
-            shadowOpacity: 0.25,
-            shadowRadius: 10,
+            backgroundColor: "#FFFFFF", // surface
+            borderColor: "#E5E7EB", // border
+            borderWidth: 1,
+            shadowColor: "#000", // subtle neutral shadow
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
             shadowOffset: { width: 0, height: 4 },
           }}
         >
           {/* Header */}
-          <View className="pb-2 border-b border-white/40 mb-3">
-            <Text className="font-montserratBold text-lg text-white">
+          <View
+            className="pb-2 border-b mb-3"
+            style={{ borderColor: "#E5E7EB" }}
+          >
+            <Text
+              className="font-montserratBold text-lg"
+              style={{ color: "#1F2937" }}
+            >
               Filters
             </Text>
           </View>
 
           {/* STATUS row */}
-          <View className="mb-2 rounded-2xl border border-white/40 bg-white/10 overflow-hidden">
+          <View
+            className="mb-2 rounded-xl overflow-hidden"
+            style={{
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+              backgroundColor: "#F9FAFB", // subtle background
+            }}
+          >
             <TouchableOpacity
               className="flex-row items-center justify-between px-3 py-3"
               onPress={() => setOpenKey(openKey === "status" ? null : "status")}
               activeOpacity={0.8}
             >
-              <Text className="text-white font-montserrat">
+              <Text className="font-montserrat" style={{ color: "#1F2937" }}>
                 {getLabel(STATUS_OPTIONS, tempFilters.status)}
               </Text>
               <Ionicons
                 name={openKey === "status" ? "chevron-up" : "chevron-down"}
                 size={18}
-                color="#fff"
+                color="#6B7280"
               />
             </TouchableOpacity>
 
             {openKey === "status" && (
-              <View className="bg-white/15">
+              <View style={{ backgroundColor: "#FFFFFF" }}>
                 {STATUS_OPTIONS.map((opt) => (
                   <TouchableOpacity
                     key={opt.value}
@@ -458,11 +471,19 @@ const Reports = () => {
                       setOpenKey(null);
                     }}
                   >
-                    <Text className="text-white font-montserrat">
+                    <Text
+                      className="font-montserrat"
+                      style={{
+                        color:
+                          tempFilters.status === opt.value
+                            ? "#6C4FE0" // highlight active with brand purple
+                            : "#1F2937",
+                      }}
+                    >
                       {opt.label}
                     </Text>
                     {tempFilters.status === opt.value && (
-                      <Ionicons name="checkmark" size={16} color="#fff" />
+                      <Ionicons name="checkmark" size={16} color="#6C4FE0" />
                     )}
                   </TouchableOpacity>
                 ))}
@@ -471,7 +492,14 @@ const Reports = () => {
           </View>
 
           {/* VIOLATION TYPE row */}
-          <View className="mb-2 rounded-2xl border border-white/40 bg-white/10 overflow-hidden">
+          <View
+            className="mb-2 rounded-xl overflow-hidden"
+            style={{
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+              backgroundColor: "#F9FAFB", // subtle background
+            }}
+          >
             <TouchableOpacity
               className="flex-row items-center justify-between px-3 py-3"
               onPress={() =>
@@ -479,7 +507,7 @@ const Reports = () => {
               }
               activeOpacity={0.8}
             >
-              <Text className="text-white font-montserrat">
+              <Text className="font-montserrat" style={{ color: "#1F2937" }}>
                 {getLabel(VIOLATION_OPTIONS, tempFilters.violationType)}
               </Text>
               <Ionicons
@@ -487,12 +515,12 @@ const Reports = () => {
                   openKey === "violationType" ? "chevron-up" : "chevron-down"
                 }
                 size={18}
-                color="#fff"
+                color="#6B7280"
               />
             </TouchableOpacity>
 
             {openKey === "violationType" && (
-              <View className="bg-white/15">
+              <View style={{ backgroundColor: "#FFFFFF" }}>
                 {VIOLATION_OPTIONS.map((opt) => (
                   <TouchableOpacity
                     key={opt.value}
@@ -506,11 +534,19 @@ const Reports = () => {
                       setOpenKey(null);
                     }}
                   >
-                    <Text className="text-white font-montserrat">
+                    <Text
+                      className="font-montserrat"
+                      style={{
+                        color:
+                          tempFilters.violationType === opt.value
+                            ? "#6C4FE0" // highlight active with brand purple
+                            : "#1F2937",
+                      }}
+                    >
                       {opt.label}
                     </Text>
                     {tempFilters.violationType === opt.value && (
-                      <Ionicons name="checkmark" size={16} color="#fff" />
+                      <Ionicons name="checkmark" size={16} color="#6C4FE0" />
                     )}
                   </TouchableOpacity>
                 ))}
@@ -519,7 +555,14 @@ const Reports = () => {
           </View>
 
           {/* VERDICT row */}
-          <View className="mb-3 rounded-2xl border border-white/40 bg-white/10 overflow-hidden">
+          <View
+            className="mb-2 rounded-xl overflow-hidden"
+            style={{
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+              backgroundColor: "#F9FAFB", // subtle background
+            }}
+          >
             <TouchableOpacity
               className="flex-row items-center justify-between px-3 py-3"
               onPress={() =>
@@ -527,13 +570,13 @@ const Reports = () => {
               }
               activeOpacity={0.8}
             >
-              <Text className="text-white font-montserrat">
+              <Text className="font-montserrat" style={{ color: "#1F2937" }}>
                 {getLabel(VERDICT_OPTIONS, tempFilters.verdict)}
               </Text>
               <Ionicons
                 name={openKey === "verdict" ? "chevron-up" : "chevron-down"}
                 size={18}
-                color="#fff"
+                color="#6B7280"
               />
             </TouchableOpacity>
 
@@ -549,11 +592,19 @@ const Reports = () => {
                       setOpenKey(null);
                     }}
                   >
-                    <Text className="text-white font-montserrat">
+                    <Text
+                      className="font-montserrat"
+                      style={{
+                        color:
+                          tempFilters.verdict === opt.value
+                            ? "#6C4FE0" // highlight active with brand purple
+                            : "#1F2937",
+                      }}
+                    >
                       {opt.label}
                     </Text>
                     {tempFilters.verdict === opt.value && (
-                      <Ionicons name="checkmark" size={16} color="#fff" />
+                      <Ionicons name="checkmark" size={16} color="#6C4FE0" />
                     )}
                   </TouchableOpacity>
                 ))}
@@ -565,7 +616,12 @@ const Reports = () => {
           {/* Buttons */}
           <View className="flex-row justify-end gap-2">
             <TouchableOpacity
-              className="rounded-xl border border-white/40 bg-white/10 px-3 py-2"
+              className="rounded-xl px-3 py-2"
+              style={{
+                borderColor: "#E5E7EB",
+                borderWidth: 1,
+                backgroundColor: "#F9FAFB",
+              }}
               onPress={() =>
                 setTempFilters({
                   status: "",
@@ -576,17 +632,23 @@ const Reports = () => {
                 })
               }
             >
-              <Text className="font-montserrat text-white">Reset</Text>
+              <Text className="font-montserrat" style={{ color: "#6B7280" }}>
+                Reset
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="rounded-xl bg-white px-4 py-2"
+              className="rounded-xl px-4 py-2"
+              style={{ backgroundColor: "#6C4FE0" }}
               onPress={() => {
                 setFilters(tempFilters); // <-- triggers fetch via your useEffect
                 setMenuVisible(false);
               }}
             >
-              <Text className="font-montserratBold text-primary-dark">
+              <Text
+                className="font-montserratBold"
+                style={{ color: "#FFFFFF" }}
+              >
                 Apply
               </Text>
             </TouchableOpacity>

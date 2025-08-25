@@ -94,7 +94,6 @@ export default function ReportSubmissionDemo() {
   //     setLoadingAi(true);
   //     setAiError(null);
 
-  // 🔹 instead of API call, just hardcode mock data
   //     const mockVerdict = {
   //       annotatedImageUrl:
   //         "https://via.placeholder.com/400x200.png?text=Annotated+Billboard",
@@ -171,7 +170,7 @@ export default function ReportSubmissionDemo() {
         className="flex-1 bg-[#F9FAFB]"
         contentContainerStyle={{ flexGrow: 1 }}
         enableOnAndroid={true}
-        extraScrollHeight={20}
+        extraScrollHeight={verdict ? 160 : 30}
         keyboardShouldPersistTaps="handled"
       >
         <ScrollView
