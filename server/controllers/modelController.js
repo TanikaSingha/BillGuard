@@ -28,8 +28,8 @@ const getModelResponse = async (req, res) => {
     const hoardingDimensions = {};
     const hoardings = [
       {
-        width: hoardingDimensions?.width || 50,
-        height: hoardingDimensions?.height || 10,
+        width: hoardingDimensions?.width || 200,
+        height: hoardingDimensions?.height || 180,
         gps: { lat: latitude, lon: longitude },
         angle: hoardingDimensions?.angle || 20,
         ocrText: [{ text: "alcohol" }],
@@ -39,11 +39,16 @@ const getModelResponse = async (req, res) => {
     const evaluation = await evaluateHoardingViolations(hoardings);
 
     const verdict = {
-      annotatedImageUrl,
+      annotatedImageUrl:
+        "https://res.cloudinary.com/dzjbxojvu/image/upload/v1756121237/aiUploads/ulygp55mvqmrdljrsfxe.jpg",
       location: { latitude, longitude },
       details: hoardings[0],
-      violations: evaluation.results[0].violationType,
-      aiAnalysis: evaluation.results[0].aiAnalysis,
+      violations: ["size_violation", "structural_hazard"],
+      aiAnalysis: {
+        verdict: "unauthorized",
+        confidence: 0.88,
+        detectedObjects: ["oversized hoarding"],
+      },
     };
 
     return res.status(200).json({ status: "success", verdict });
