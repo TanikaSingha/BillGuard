@@ -68,22 +68,29 @@ export default function Profile() {
         <View
           className="absolute right-4 top-20 px-4 py-2 w-48 z-50 rounded-2xl border"
           style={{
-            backgroundColor: "#A78BFA",
-            borderColor: "#6C4FE0",
-            borderWidth: 2,
-            shadowColor: "#4C1D95",
-            shadowOpacity: 0.25,
-            shadowRadius: 10,
+            backgroundColor: "#FFFFFF", // surface
+            borderColor: "#E5E7EB", // neutral border
+            borderWidth: 1,
+            shadowColor: "#000", // subtle shadow
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
             shadowOffset: { width: 0, height: 4 },
           }}
         >
-          <View className="px-4 py-3 border-b border-border/60">
-            <Text className="font-montserratBold text-text-primary">
+          <View
+            className="px-4 py-3 border-b"
+            style={{ borderColor: "#E5E7EB" }}
+          >
+            <Text className="font-montserratBold" style={{ color: "#1F2937" }}>
               Appearance
             </Text>
           </View>
+
           <View className="px-4 py-3 flex-row items-center justify-between">
-            <Text className="text-base font-montserrat text-text-primary">
+            <Text
+              className="text-base font-montserrat"
+              style={{ color: "#1F2937" }}
+            >
               Dark Mode
             </Text>
             <Switch
@@ -91,6 +98,8 @@ export default function Profile() {
               onValueChange={() =>
                 toggleTheme(currentTheme === "light" ? "dark" : "light")
               }
+              trackColor={{ false: "#E5E7EB", true: "#C7D2FE" }} // subtle gray → light purple
+              thumbColor={currentTheme === "dark" ? "#6C4FE0" : "#FFFFFF"} // purple accent when active
             />
           </View>
         </View>
@@ -160,37 +169,34 @@ export default function Profile() {
               )}
 
               {user.role === "AdminUser" && (
-                <View className="mt-6 flex-row justify-between mx-6">
-                  <View className="flex-1 mx-1 items-center">
-                    <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
-                      <Text className="font-montserratBold text-xl text-text-primary">
-                        {user.adminUser?.verifiedReports || 0}
-                      </Text>
-                      <Text className="font-montserrat text-xs text-text-secondary mt-1">
-                        Verified
-                      </Text>
+                <View>
+                  <View className="mt-6 flex-row mx-5 gap-3">
+                    <View className="w-[48%] items-center">
+                      <View className="px-3 py-4 rounded-2xl bg-background border border-border w-full items-center">
+                        <Text className="font-montserratBold text-xl text-text-primary">
+                          {user.adminUser?.verifiedReports || 0}
+                        </Text>
+                        <Text className="font-montserrat text-xs text-text-secondary mt-1">
+                          Verified
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View className="w-[48%] items-center">
+                      <View className="px-3 py-4 rounded-2xl bg-background border border-border w-full items-center">
+                        <Text className="font-montserratBold text-xl text-text-primary">
+                          {user.adminUser?.rejectedReports || 0}
+                        </Text>
+                        <Text className="font-montserrat text-xs text-text-secondary mt-1">
+                          Rejected
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                  <View className="flex-1 mx-1 items-center">
-                    <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
-                      <Text className="font-montserratBold text-xl text-text-primary">
-                        {user.adminUser?.rejectedReports || 0}
-                      </Text>
-                      <Text className="font-montserrat text-xs text-text-secondary mt-1">
-                        Rejected
-                      </Text>
-                    </View>
-                  </View>
-                  <View className="flex-1 mx-1 items-center">
-                    <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
-                      <Text
-                        className="font-montserratBold text-base text-text-primary"
-                        numberOfLines={1}
-                      >
-                        {user.adminUser?.adminCode || "N/A"}
-                      </Text>
-                      <Text className="font-montserrat text-xs text-text-secondary mt-1">
-                        Admin Code
+                  <View className="mt-4 mx-6 items-center">
+                    <View className="px-4 py-2 rounded-full bg-background border border-primary-main/30">
+                      <Text className="font-montserrat text-xs text-primary-dark tracking-wide">
+                        Admin Code: {user.adminUser?.adminCode || "N/A"}
                       </Text>
                     </View>
                   </View>
@@ -203,24 +209,17 @@ export default function Profile() {
                   <Text className="font-montserratBold text-sm text-text-primary mb-2">
                     Permissions
                   </Text>
-                  <View className="flex-row flex-wrap">
-                    {user.adminUser?.permissions?.length ? (
-                      user.adminUser.permissions.map((perm, idx) => (
-                        <View
-                          key={idx}
-                          className="px-3 py-1 rounded-full bg-primary-main/10 border border-primary-main/30 mr-2 mb-2"
-                        >
-                          <Text className="font-montserrat text-xs text-primary-dark">
-                            {perm}
-                          </Text>
-                        </View>
-                      ))
-                    ) : (
-                      <Text className="font-montserrat text-xs text-text-secondary">
-                        No permissions assigned
-                      </Text>
-                    )}
-                  </View>
+                  <Text
+                    className="font-montserrat text-xs text-primary-dark"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {user.adminUser?.permissions?.length
+                      ? user.adminUser.permissions
+                          .map((perm) => perm)
+                          .join(" • ") // 👈 replace commas with dot separator
+                      : "No permissions assigned"}
+                  </Text>
                 </View>
               )}
             </View>
@@ -232,7 +231,7 @@ export default function Profile() {
               Quick Actions
             </Text>
 
-            <View className="flex-row flex-wrap justify-between gap-y-3">
+            <View className="flex-row justify-between">
               {/* Badge tile */}
               {user.role === "NormalUser" && (
                 <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
@@ -246,7 +245,7 @@ export default function Profile() {
               )}
 
               {/* Account */}
-              <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
+              <TouchableOpacity className="w-[23%] aspect-square rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 items-center justify-center active:opacity-90">
                 <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
                   <Ionicons name="person-outline" size={24} color="#6C4FE0" />
                 </View>
@@ -256,7 +255,10 @@ export default function Profile() {
               </TouchableOpacity>
 
               {/* Reports */}
-              <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
+              <TouchableOpacity
+                className="w-[23%] aspect-square rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 items-center justify-center active:opacity-90"
+                onPress={() => router.push("/reports")}
+              >
                 <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
                   <Ionicons
                     name="document-text-outline"
@@ -268,11 +270,7 @@ export default function Profile() {
                   Reports
                 </Text>
               </TouchableOpacity>
-            </View>
-
-            <View className="flex-row flex-wrap justify-start gap-y-3 gap-x-5">
-              {/* About */}
-              <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
+              <TouchableOpacity className="w-[23%] aspect-square rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 items-center justify-center active:opacity-90">
                 <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
                   <Ionicons
                     name="information-circle-outline"
@@ -284,11 +282,9 @@ export default function Profile() {
                   About
                 </Text>
               </TouchableOpacity>
-
-              {/* Logout */}
               <TouchableOpacity
                 disabled={status === "loading"}
-                className={`w-[30%] aspect-square mb-4 rounded-2xl border px-3 py-4 items-center justify-center shadow-md shadow-primary-dark/15 ${
+                className={`w-[23%] aspect-square rounded-2xl border items-center justify-center shadow-md shadow-primary-dark/15 ${
                   status === "loading"
                     ? "bg-text-disabled/20 border-error/40"
                     : "bg-surface border-error"

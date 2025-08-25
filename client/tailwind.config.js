@@ -1,21 +1,23 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./App.{js,jsx,ts,tsx}",
+  content: [
+    "./App.{js,jsx,ts,tsx}",
     "./app/**/*.{js,jsx,ts,tsx}",
-    "./components/**/*.{js,jsx,ts,tsx}",],
+    "./components/**/*.{js,jsx,ts,tsx}",
+  ],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {
         background: "#F9FAFB", // app background
-        surface: "#FFFFFF",    // cards/containers
+        surface: "#FFFFFF", // cards/containers
         text: {
-          primary: "#1F2937",  // near black
-          secondary: "#6B7280",// medium gray
+          primary: "#1F2937", // near black
+          secondary: "#6B7280", // medium gray
           disabled: "#9CA3AF", // light gray
         },
         primary: {
-          main: "#6C4FE0",     // brand purple
+          main: "#6c4fe0ff", // brand purple
           light: "#A78BFA",
           dark: "#4C1D95",
         },
@@ -24,13 +26,12 @@ module.exports = {
         warning: "#F59E0B",
         border: "#E5E7EB",
       },
-    fontFamily: {
+      fontFamily: {
         montserrat: ["Montserrat"], // regular
-      montserratBold: ["Montserrat-Bold"], // bold
-      montserratSemiBold: ["Montserrat-SemiBold"], // semibold
+        montserratBold: ["Montserrat-Bold"], // bold
+        montserratSemiBold: ["Montserrat-SemiBold"], // semibold
       },
     },
   },
   plugins: [],
-}
-
+};
