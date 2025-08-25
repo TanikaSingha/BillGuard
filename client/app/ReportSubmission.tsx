@@ -6,6 +6,7 @@ import {
   setUserOverrideVerdict,
   submitReport,
 } from "@/lib/Slices/reportSlice";
+import { increaseReportCount } from "@/lib/Slices/userSlice";
 import apiRequest from "@/lib/utils/apiRequest";
 import { AppDispatch, RootState } from "@/store/store";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -87,43 +88,6 @@ export default function ReportSubmissionDemo() {
     }
   };
 
-  // const handleAiAnalysis = async () => {
-  //   try {
-  //     setLoadingAi(true);
-  //     setAiError(null);
-
-  //     const mockVerdict = {
-  //       annotatedImageUrl:
-  //         "https://via.placeholder.com/400x200.png?text=Annotated+Billboard",
-  //       location: { latitude: 22.5726, longitude: 88.3639 },
-  //       details: { width: 120, height: 80, angle: 15 },
-  //       violations: ["size_violation", "illegal_location"],
-  //       aiAnalysis: {
-  //         verdict: "unauthorized",
-  //         confidence: 0.92,
-  //         detectedObjects: ["billboard", "pole"],
-  //       },
-  //     };
-
-  //     // set mock verdict into state
-  //     setVerdict(mockVerdict);
-
-  //     // also update userOverrideVerdict (like AI would)
-  //     dispatch(
-  //       setUserOverrideVerdict(
-  //         mockVerdict.aiAnalysis.verdict as
-  //           | "unauthorized"
-  //           | "authorized"
-  //           | "unsure"
-  //       )
-  //     );
-  //   } catch (err: any) {
-  //     setAiError("Failed to set mock verdict");
-  //   } finally {
-  //     setLoadingAi(false);
-  //   }
-  // };
-
   const handleSubmit = async () => {
     try {
       const payload = {
@@ -151,6 +115,7 @@ export default function ReportSubmissionDemo() {
         },
       };
       await dispatch(submitReport(payload)).unwrap();
+      await dispatch(increaseReportCount());
       Alert.alert("Success", "Your report has been submitted successfully!");
       dispatch(resetReport());
       router.push({
