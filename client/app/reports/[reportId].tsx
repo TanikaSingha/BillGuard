@@ -1,6 +1,7 @@
 import apiRequest from "@/lib/utils/apiRequest";
 import { RootState } from "@/store/store";
 import { FontAwesome } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
@@ -10,6 +11,7 @@ import {
   Image,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -22,6 +24,29 @@ const ReportDetails = () => {
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [status, setStatus] = useState(report?.status || "pending");
+  const [adminNotes, setAdminNotes] = useState(report?.adminNotes || "");
+  const [saving, setSaving] = useState(false);
+
+  const handleAdminUpdate = async () => {
+    try {
+      setSaving(true);
+      const token = await SecureStore.getItemAsync("authToken");
+      const res = await apiRequest.patch(
+        `/report/update/${reportId}`,
+        { status, adminNotes },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setReport(res.data.data);
+      goBackByRole();
+    } catch (err: any) {
+      console.error("Admin update failed", err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const formatSubmittedAt = (dateLike: string | number | Date) => {
     const d = new Date(dateLike);
@@ -338,6 +363,60 @@ const ReportDetails = () => {
             </View>
           </AccordionItem>
         </View>
+
+        {user?.role === "AdminUser" && (
+          <View className="bg-white rounded-2xl p-4 shadow-sm mt-5">
+            <Text className="font-montserratBold text-lg text-slate-900 mb-3">
+              Admin Actions
+            </Text>
+
+            {/* Status dropdown */}
+            <Text className="text-slate-700 font-montserrat mb-1">
+              Change Status
+            </Text>
+            <View className="border border-slate-300 rounded-xl mb-4">
+              <Picker
+                selectedValue={status}
+                onValueChange={(val) => setStatus(val)}
+              >
+                <Picker.Item label="Pending" value="pending" />
+                <Picker.Item
+                  label="Verified Unauthorized"
+                  value="verified_unauthorized"
+                />
+                <Picker.Item
+                  label="Verified Authorized"
+                  value="verified_authorized"
+                />
+                <Picker.Item label="Rejected" value="rejected" />
+              </Picker>
+            </View>
+
+            {/* Admin Notes */}
+            <Text className="text-slate-700 font-montserrat mb-1">
+              Admin Notes
+            </Text>
+            <TextInput
+              multiline
+              value={adminNotes}
+              onChangeText={setAdminNotes}
+              placeholder="Write your notes..."
+              className="border border-slate-300 rounded-xl px-3 py-2 text-slate-800 font-montserrat mb-4"
+              style={{ minHeight: 80 }}
+            />
+
+            {/* Save button */}
+            <TouchableOpacity
+              onPress={handleAdminUpdate}
+              disabled={saving}
+              className="bg-sky-600 px-5 py-3 rounded-2xl shadow-sm active:opacity-90"
+            >
+              <Text className="text-white font-semibold text-center text-base">
+                {saving ? "Saving..." : "Save Changes"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </View>
   );

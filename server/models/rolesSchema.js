@@ -5,7 +5,13 @@ const normalUserSchema = new mongoose.Schema({
   xp: { type: Number, default: 0 },
   reportsSubmitted: { type: Number, default: 0 },
   reportsVerified: { type: Number, default: 0 },
-  badges: [{ type: String, default: [] }],
+  badges: [
+    {
+      name: { type: String, required: true },
+      description: { type: String, required: true },
+      dateEarned: { type: Date, default: Date.now },
+    },
+  ],
 });
 
 const adminSchema = new mongoose.Schema({

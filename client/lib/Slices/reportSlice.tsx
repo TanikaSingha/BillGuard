@@ -76,6 +76,7 @@ export const submitReport = createAsyncThunk<any, SubmitReportPayload>(
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log(response.data);
       return response.data;
     } catch (error) {
       console.error("Error submitting report:", error);

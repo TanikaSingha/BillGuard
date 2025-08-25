@@ -38,7 +38,7 @@ const Reports = () => {
     { label: "Unauthorized", value: "unauthorized" },
     { label: "Unsure", value: "unsure" },
   ];
-  // which submenu is open: "status" | "violationType" | "verdict" | null
+
   const [openKey, setOpenKey] = useState<
     null | "status" | "violationType" | "verdict"
   >(null);
@@ -93,13 +93,7 @@ const Reports = () => {
 
     if (route.params?.fromSubmission) {
       setShowRecent(true);
-      const sortedReports = data.data
-        .slice()
-        .sort(
-          (a: any, b: any) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-      setRecentReports(sortedReports.slice(0, 1));
+      setRecentReports(data.data.slice(0, 1));
     } else {
       setShowRecent(false);
       setRecentReports([]);
@@ -118,98 +112,9 @@ const Reports = () => {
       };
     }, [])
   );
-
-  //   <View className="relative mb-4 rounded-2xl bg-white p-4 shadow-lg border border-border bg-surface">
-  //     {/* Status pill (top-right, non-clickable) */}
-  //     <View
-  //       className={[
-  //         "absolute right-3 top-3 rounded-full border px-2.5 py-1",
-  //         item?.status?.toLowerCase() === "pending"
-  //           ? "bg-yellow-100 border-yellow-300"
-  //           : item?.status?.toLowerCase() === "rejected"
-  //             ? "bg-red-100 border-red-300"
-  //             : "bg-green-100 border-green-300",
-  //       ].join(" ")}
-  //     >
-  //       <Text
-  //         className={[
-  //           "text-xs font-semibold",
-  //           item?.status?.toLowerCase() === "pending"
-  //             ? "text-yellow-800"
-  //             : item?.status?.toLowerCase() === "rejected"
-  //               ? "text-red-800"
-  //               : "text-green-800",
-  //         ].join(" ")}
-  //         style={{ fontFamily: "Montserrat-Bold" }}
-  //       >
-  //         {item.status?.toUpperCase()}
-  //       </Text>
-  //     </View>
-
-  //     {/* Heading: Verdict */}
-  //     <Text className="pr-24 text-lg font-montserratBold text-text-primary">
-  //       {(item.aiAnalysis?.verdict || "N/A").toUpperCase()}
-  //     </Text>
-
-  //     {/* Images (slightly smaller height) */}
-  //     <View className="mt-2 mb-2 flex-row gap-2">
-  //       {item.imageURL && (
-  //         <Image
-  //           source={{ uri: item.imageURL }}
-  //           className="h-36 w-[48%] rounded-xl"
-  //         />
-  //       )}
-  //       {item.annotatedURL && (
-  //         <Image
-  //           source={{ uri: item.annotatedURL }}
-  //           className="h-36 w-[48%] rounded-xl"
-  //         />
-  //       )}
-  //     </View>
-
-  //     <View className="flex-row justify-between items-end">
-  //       <View>
-  //         {/* Submitted on */}
-  //         <Text className="mb-1 text-xs text-text-secondary font-montserrat">
-  //           <Text className="font-semibold text-text-primary">
-  //             Submitted on:
-  //           </Text>{" "}
-  //           {new Date(item.submittedAt).toLocaleString()}
-  //         </Text>
-  //         {/* Problems / Violations (below images) */}
-  //         <Text className="mb-1 text-xs text-text-secondary font-montserrat">
-  //           <Text className="font-semibold text-text-primary">Issues:</Text>{" "}
-  //           {item.violationType?.length ? item.violationType.join(", ") : "N/A"}
-  //         </Text>
-
-  //         {/* Location */}
-  //         <Text className="mb-1 text-xs text-text-secondary font-montserrat">
-  //           <Text className="font-semibold text-text-primary">Location:</Text>{" "}
-  //           {item.location?.coordinates?.join(", ") || "N/A"}
-  //         </Text>
-  //       </View>
-  //       <View>
-  //         <TouchableOpacity
-  //           className="self-end rounded-full bg-primary-main px-4 py-2 shadow"
-  //           onPress={() =>
-  //             router.push({
-  //               pathname: "/reports/[reportId]",
-  //               params: { reportId: item._id },
-  //             })
-  //           }
-  //         >
-  //           <Text className="text-xs font-semibold text-white font-montserratBold">
-  //             See Details
-  //           </Text>
-  //         </TouchableOpacity>
-  //       </View>
-  //     </View>
-  //   </View>
-  // );
   const renderReportItem = ({ item }: { item: any }) => {
     const status = (item?.status || "").toLowerCase();
 
-    // Status colors from your palette
     const statusStyles =
       status === "pending"
         ? { bg: "#FEF3C7", border: "#F59E0B", text: "#B45309" } // warning (soft)
@@ -377,14 +282,6 @@ const Reports = () => {
       </View>
     );
   };
-
-  if (status === "loading") {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
 
   return (
     <View className="flex-1 bg-neutral-100">
@@ -654,43 +551,113 @@ const Reports = () => {
           </View>
         </View>
       )}
-      <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
-        <ScrollView className="my-6 mx-6" showsVerticalScrollIndicator={false}>
-          {/* Recently Submitted */}
-          {showRecent && recentReports.length > 0 && (
-            <>
-              <Text className="mb-3 text-md font-montserratBold text-text-primary tracking-wide">
-                RECENTLY SUBMITTED
+      {reports.length > 0 && (
+        <View className="flex-row items-center justify-between mt-6 mb-10">
+          {/* Prev Button */}
+          <TouchableOpacity
+            disabled={filters.page === 1}
+            onPress={() =>
+              setFilters((f) => ({
+                ...f,
+                page: Math.max(1, f.page - 1),
+              }))
+            }
+            className={[
+              "px-4 py-2 rounded-lg",
+              filters.page === 1 ? "bg-gray-200" : "bg-primary-main",
+            ].join(" ")}
+          >
+            <Text
+              className={[
+                "font-montserratBold",
+                filters.page === 1 ? "text-gray-400" : "text-white",
+              ].join(" ")}
+            >
+              Prev
+            </Text>
+          </TouchableOpacity>
+
+          {/* Page Indicator */}
+          <Text className="text-sm font-montserrat text-gray-600">
+            Page {filters.page}
+          </Text>
+
+          {/* Next Button */}
+          <TouchableOpacity
+            disabled={reports.length < filters.limit}
+            onPress={() => {
+              if (showRecent) {
+                setShowRecent(false);
+              }
+              setFilters((f) => ({
+                ...f,
+                page: f.page + 1,
+              }));
+            }}
+            className={[
+              "px-4 py-2 rounded-lg",
+              reports.length < filters.limit
+                ? "bg-gray-200"
+                : "bg-primary-main",
+            ].join(" ")}
+          >
+            <Text
+              className={[
+                "font-montserratBold",
+                reports.length < filters.limit ? "text-gray-400" : "text-white",
+              ].join(" ")}
+            >
+              Next
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {status === "loading" ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" />
+        </View>
+      ) : (
+        <SafeAreaView edges={["bottom"]} style={{ flex: 1 }}>
+          <ScrollView
+            className="my-6 mx-6"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Recently Submitted */}
+            {showRecent && recentReports.length > 0 && (
+              <>
+                <Text className="mb-3 text-md font-montserratBold text-text-primary tracking-wide">
+                  RECENTLY SUBMITTED
+                </Text>
+                <FlatList
+                  data={recentReports}
+                  renderItem={renderReportItem}
+                  keyExtractor={(item) => item._id}
+                  scrollEnabled={false}
+                  contentContainerStyle={{}}
+                />
+              </>
+            )}
+
+            {/* Report History */}
+            <Text className="mb-3 text-MD font-montserratBold text-text-primary tracking-wide">
+              REPORT HISTORY
+            </Text>
+            {reports.length === 0 ? (
+              <Text className="mt-5 text-center text-sm text-neutral-500">
+                No reports found.
               </Text>
+            ) : (
               <FlatList
-                data={recentReports}
+                data={reports}
                 renderItem={renderReportItem}
                 keyExtractor={(item) => item._id}
                 scrollEnabled={false}
                 contentContainerStyle={{}}
               />
-            </>
-          )}
-
-          {/* Report History */}
-          <Text className="mb-3 text-MD font-montserratBold text-text-primary tracking-wide">
-            REPORT HISTORY
-          </Text>
-          {reports.length === 0 ? (
-            <Text className="mt-5 text-center text-sm text-neutral-500">
-              No reports found.
-            </Text>
-          ) : (
-            <FlatList
-              data={reports}
-              renderItem={renderReportItem}
-              keyExtractor={(item) => item._id}
-              scrollEnabled={false}
-              contentContainerStyle={{}}
-            />
-          )}
-        </ScrollView>
-      </SafeAreaView>
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      )}
     </View>
   );
 };
