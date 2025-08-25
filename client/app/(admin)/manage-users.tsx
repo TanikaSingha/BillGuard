@@ -138,25 +138,31 @@ const ManageUsers = () => {
           </Text>
         </View>
       </View>
-      <View className="p-4">
+      <View className="px-6 py-4">
         {/* Search Bar */}
-        <TextInput
-          placeholder="🔍 Search by name, username, or email"
-          value={search}
-          onChangeText={setSearch}
-          onSubmitEditing={() => {
-            setPage(1);
-            fetchUsers();
-          }}
-          style={{
-            backgroundColor: "#fff",
-            padding: 12,
-            borderRadius: 12,
-            marginBottom: 15,
-            borderWidth: 1,
-            borderColor: "#ddd",
-          }}
-        />
+        <View className="flex-row items-center bg-white border border-border rounded-full px-3 mb-4">
+          {/* Left search icon */}
+          <Ionicons name="search-outline" size={20} color="#9CA3AF" />
+
+          {/* Input */}
+          <TextInput
+            className="flex-1 px-2 py-4 font-montserrat text-text-primary"
+            placeholder="Search by name, username, or email"
+            value={search}
+            onChangeText={setSearch}
+            onSubmitEditing={() => {
+              setPage(1);
+              fetchUsers();
+            }}
+            placeholderTextColor="#9CA3AF"
+          />
+
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => setSearch("")} className="ml-2">
+              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* Filters */}
         <View style={{ flexDirection: "row", marginBottom: 15 }}>

@@ -1,6 +1,7 @@
 import { logoutUser } from "@/lib/Slices/userSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useFonts } from "expo-font";
 import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
@@ -226,17 +227,13 @@ export default function Profile() {
               {/* About */}
               <TouchableOpacity
                 className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90"
-                onPress={() => router.push("/about")}
+                onPress={() => router.push("/leaderboard")}
               >
                 <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
-                  <Ionicons
-                    name="information-circle-outline"
-                    size={24}
-                    color="#6C4FE0"
-                  />
+                  <MaterialIcons name="leaderboard" size={24} color="#6C4FE0" />
                 </View>
                 <Text className="font-montserrat text-sm text-text-primary mt-2 text-center">
-                  About
+                  Leaderboard
                 </Text>
               </TouchableOpacity>
 

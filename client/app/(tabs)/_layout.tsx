@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Tabs, router } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -10,7 +11,7 @@ const _layout = () => {
         tabBarShowLabel: false,
         tabBarStyle: {
           marginHorizontal: 20,
-          marginBottom:10,
+          marginBottom: 10,
           height: 55,
           position: "absolute",
           borderRadius: 30,
@@ -28,10 +29,7 @@ const _layout = () => {
         options={{
           tabBarIcon: ({ focused, color, size }) => (
             <View
-              style={[
-                styles.iconWrapper,
-                focused && styles.iconWrapperActive,
-              ]}
+              style={[styles.iconWrapper, focused && styles.iconWrapperActive]}
             >
               <Ionicons name="home-outline" size={size} color={color} />
             </View>
@@ -44,12 +42,13 @@ const _layout = () => {
         options={{
           tabBarIcon: ({ focused, color, size }) => (
             <View
-              style={[
-                styles.iconWrapper,
-                focused && styles.iconWrapperActive,
-              ]}
+              style={[styles.iconWrapper, focused && styles.iconWrapperActive]}
             >
-              <Ionicons name="document-text-outline" size={size} color={color} />
+              <Ionicons
+                name="document-text-outline"
+                size={size}
+                color={color}
+              />
             </View>
           ),
           headerShown: false,
@@ -74,20 +73,13 @@ const _layout = () => {
         }}
       />
       <Tabs.Screen
-        name="about"
+        name="leaderboard"
         options={{
           tabBarIcon: ({ focused, color, size }) => (
             <View
-              style={[
-                styles.iconWrapper,
-                focused && styles.iconWrapperActive,
-              ]}
+              style={[styles.iconWrapper, focused && styles.iconWrapperActive]}
             >
-              <Ionicons
-                name="information-circle-outline"
-                size={size}
-                color={color}
-              />
+              <MaterialIcons name="leaderboard" size={size} color={color} />
             </View>
           ),
           headerShown: false,
@@ -98,10 +90,7 @@ const _layout = () => {
         options={{
           tabBarIcon: ({ focused, color, size }) => (
             <View
-              style={[
-                styles.iconWrapper,
-                focused && styles.iconWrapperActive,
-              ]}
+              style={[styles.iconWrapper, focused && styles.iconWrapperActive]}
             >
               <Ionicons name="person-outline" size={size} color={color} />
             </View>
@@ -126,10 +115,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   iconWrapper: {
-    width:40,
-    height:40,
+    width: 40,
+    height: 40,
     borderRadius: 50,
-    padding:8,
+    padding: 8,
   },
   iconWrapperActive: {
     backgroundColor: "#A78BFA", // lighter gray highlight for active tab
