@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { Image, Text, View } from "react-native";
 
 interface LeaderboardItemProps {
   item: {
@@ -21,29 +21,11 @@ const LeaderboardItem: React.FC<LeaderboardItemProps> = ({ item, rank }) => {
   };
 
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        padding: 12,
-        borderRadius: 16,
-        marginBottom: 12,
-        backgroundColor: "#111827", // dark background like Reports' cards
-        shadowColor: "#000",
-        shadowOpacity: 0.05,
-        shadowRadius: 6,
-        shadowOffset: { width: 0, height: 2 },
-      }}
-    >
+    <View className="flex-row items-center p-3 mb-3 rounded-2xl bg-primary-main/5 border border-border">
       {/* Rank */}
       <Text
-        style={{
-          color: getRankColor(rank),
-          fontSize: 20,
-          fontWeight: "bold",
-          width: 32,
-          textAlign: "center",
-        }}
+        className="w-9 text-center text-sm font-montserratBold"
+        style={{ color: getRankColor(rank) }}
       >
         #{rank}
       </Text>
@@ -51,60 +33,40 @@ const LeaderboardItem: React.FC<LeaderboardItemProps> = ({ item, rank }) => {
       {/* Avatar */}
       <Image
         source={{ uri: item.avatar }}
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          marginHorizontal: 12,
-          borderWidth: 2,
-          borderColor: "#FBBF24",
-        }}
+        className="w-12 h-12 mx-3 rounded-full border-2"
+        style={{ borderColor: getRankColor(rank) }}
       />
 
-      {/* Info Box */}
-      <View
-        style={{
-          flex: 1,
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          backgroundColor: "#1F2937", // slightly lighter dark card
-          paddingHorizontal: 12,
-          paddingVertical: 8,
-          borderRadius: 12,
-        }}
-      >
-        {/* Level + Medal */}
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+      {/* Main Content */}
+      <View className="flex-1 flex-col">
+        {/* Username + Score */}
+        <View className="flex-row items-center justify-between">
+          <Text
+            className="font-montserratBold text-text-primary text-[15px]"
+            numberOfLines={1}
+          >
+            {item.username}
+          </Text>
+
+          <View className="px-3 py-1 rounded-full bg-primary-main/20">
+            <Text className="font-montserratBold text-[13px] text-primary-dark">
+              {item.score} pts
+            </Text>
+          </View>
+        </View>
+
+        {/* Level info */}
+        <View className="flex-row items-center mt-1">
           <Ionicons
             name="medal-outline"
-            size={18}
+            size={14}
             color={getRankColor(rank)}
-            style={{ marginRight: 6 }}
+            style={{ marginRight: 4 }}
           />
-          <Text style={{ color: "#FFFFFF", fontSize: 14 }}>
+          <Text className="font-montserrat text-xs text-text-secondary">
             Level {item.playerLevel}
           </Text>
         </View>
-
-        {/* Username */}
-        <Text
-          style={{
-            color: "#FFFFFF",
-            fontSize: 16,
-            fontWeight: "600",
-            flex: 1,
-            textAlign: "center",
-          }}
-          numberOfLines={1}
-        >
-          {item.username}
-        </Text>
-
-        {/* Score */}
-        <Text style={{ color: "#E5E7EB", fontSize: 16, fontWeight: "bold" }}>
-          {item.score} pts
-        </Text>
       </View>
     </View>
   );
