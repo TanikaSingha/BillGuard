@@ -58,66 +58,65 @@ const ManageUsers = () => {
     const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=6c3ef4&color=fff`;
 
     return (
-      <View
-        style={{
-          backgroundColor: "#fff",
-          padding: 15,
-          marginBottom: 12,
-          borderRadius: 16,
-          flexDirection: "row",
-          alignItems: "center",
-          shadowColor: "#000",
-          shadowOpacity: 0.05,
-          shadowOffset: { width: 0, height: 2 },
-          shadowRadius: 6,
-          elevation: 3,
-        }}
-      >
-        {/* Avatar */}
-        <Image
-          source={{ uri: avatar }}
-          style={{
-            width: 50,
-            height: 50,
-            borderRadius: 25,
-            marginRight: 15,
-          }}
-        />
+      <View className="mb-3 rounded-2xl bg-surface border border-border p-4 shadow-sm">
+        {/* Top Row: Avatar + text + status pill */}
+        <View className="flex-row items-start">
+          {/* Circle avatar */}
+          <Image
+            source={{ uri: avatar }}
+            className="w-16 h-16 rounded-full mr-3 border-2"
+            style={{ borderColor: "#6c4fe0ff" }} // optional purple ring
+          />
 
-        {/* User Info */}
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontWeight: "700", fontSize: 16 }}>{item.name}</Text>
-          <Text style={{ color: "#555" }}>@{item.username}</Text>
-          <Text style={{ color: "#777", fontSize: 13 }}>{item.email}</Text>
+          {/* Name + username + email */}
+          <View className="flex-1">
+            <Text
+              className="font-montserratBold text-base text-text-primary"
+              numberOfLines={1}
+            >
+              {item.name}
+            </Text>
+            <Text
+              className="font-montserrat text-sm text-text-secondary"
+              numberOfLines={1}
+            >
+              @{item.username}
+            </Text>
+            <Text
+              className="font-montserrat text-xs text-text-disabled"
+              numberOfLines={1}
+            >
+              {item.email}
+            </Text>
+          </View>
+
+          {/* Status pill (top-right corner) */}
           <Text
-            style={{
-              marginTop: 5,
-              fontWeight: "600",
-              fontSize: 13,
-              color:
-                item.status === "active"
-                  ? "green"
-                  : item.status === "inactive"
-                    ? "orange"
-                    : "red",
-            }}
+            className={[
+              "px-2 py-0.5 rounded-full font-montserratBold text-xs",
+              item.status === "active"
+                ? "bg-green-100 text-success"
+                : item.status === "inactive"
+                  ? "bg-yellow-100 text-warning"
+                  : "bg-red-100 text-error",
+            ].join(" ")}
           >
-            {item?.status?.toUpperCase()}
+            {item.status === "active" ? "ACTIVE" : "UNKNOWN"}
           </Text>
         </View>
 
-        {/* See Details Button */}
-        <TouchableOpacity
-          onPress={() => router.push(`/users/${item._id}`)}
-          style={{
-            backgroundColor: "#6c3ef4",
-            paddingVertical: 8,
-            paddingHorizontal: 12,
-            borderRadius: 10,
-          }}
-        >
-          <Text style={{ color: "#fff", fontWeight: "600" }}>Details</Text>
-        </TouchableOpacity>
+        {/* Bottom Row: Details button */}
+        <View className="flex-row mt-3">
+          <TouchableOpacity
+            onPress={() => router.push(`/users/${item._id}`)}
+            className="ml-auto flex-row items-center rounded-xl bg-primary-main px-3 py-2"
+          >
+            <Text className="font-montserratBold text-white text-sm mr-1">
+              See details
+            </Text>
+            <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -165,34 +164,32 @@ const ManageUsers = () => {
         </View>
 
         {/* Filters */}
-        <View style={{ flexDirection: "row", marginBottom: 15 }}>
-          {["all", "active", "inactive", "deleted"].map((s) => (
-            <TouchableOpacity
-              key={s}
-              onPress={() => {
-                setStatus(s === "all" ? null : s);
-                setPage(1);
-              }}
-              style={{
-                paddingVertical: 8,
-                paddingHorizontal: 15,
-                marginRight: 10,
-                borderRadius: 20,
-                backgroundColor:
-                  status === s || (s === "all" && !status) ? "#6c3ef4" : "#eee",
-              }}
-            >
-              <Text
-                style={{
-                  color:
-                    status === s || (s === "all" && !status) ? "#fff" : "#333",
-                  fontWeight: "600",
+        <View className="flex-row mb-4 space-x-3">
+          {["all", "active", "inactive", "deleted"].map((s) => {
+            const selected = status === s || (s === "all" && !status);
+            return (
+              <TouchableOpacity
+                key={s}
+                onPress={() => {
+                  setStatus(s === "all" ? null : s);
+                  setPage(1);
                 }}
+                className={[
+                  "flex-1 px-2 py-2 mx-2 rounded-full",
+                  selected ? "bg-primary-main" : "bg-gray-200",
+                ].join(" ")}
               >
-                {s.toUpperCase()}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  className={[
+                    "font-montserratBold text-center text-xs",
+                    selected ? "text-white" : "text-text-primary",
+                  ].join(" ")}
+                >
+                  {s.toUpperCase()}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* User List */}
@@ -209,47 +206,55 @@ const ManageUsers = () => {
         )}
 
         {/* Pagination */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            marginTop: 15,
-            gap: 10,
-          }}
-        >
-          <TouchableOpacity
-            disabled={page === 1}
-            onPress={() => setPage((p) => Math.max(1, p - 1))}
-            style={{
-              backgroundColor: page === 1 ? "#ccc" : "#6c3ef4",
-              paddingVertical: 8,
-              paddingHorizontal: 15,
-              borderRadius: 8,
-            }}
-          >
-            <Text style={{ color: "white" }}>Prev</Text>
-          </TouchableOpacity>
-          <Text
-            style={{
-              alignSelf: "center",
-              fontWeight: "600",
-              fontSize: 16,
-            }}
-          >
-            Page {page} / {totalPages}
-          </Text>
-          <TouchableOpacity
-            disabled={page === totalPages}
-            onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
-            style={{
-              backgroundColor: page === totalPages ? "#ccc" : "#6c3ef4",
-              paddingVertical: 8,
-              paddingHorizontal: 15,
-              borderRadius: 8,
-            }}
-          >
-            <Text style={{ color: "white" }}>Next</Text>
-          </TouchableOpacity>
+        <View className="mt-4 mb-2 px-2">
+          <View className="flex-row items-center justify-center gap-3">
+            {/* Prev */}
+            <TouchableOpacity
+              disabled={page === 1}
+              onPress={() => setPage((p) => Math.max(1, p - 1))}
+              className={[
+                "w-10 h-10 rounded-full items-center justify-center border",
+                page === 1
+                  ? "bg-white border-border"
+                  : "bg-primary-main border-primary-main",
+              ].join(" ")}
+              activeOpacity={0.85}
+            >
+              <Ionicons
+                name="chevron-back"
+                size={18}
+                color={page === 1 ? "#9CA3AF" : "#FFFFFF"}
+              />
+            </TouchableOpacity>
+
+            {/* Page indicator */}
+            <Text className="font-montserrat text-sm text-text-secondary">
+              Page{" "}
+              <Text className="font-montserratBold text-text-secondary">
+                {page}
+              </Text>{" "}
+              / {totalPages}
+            </Text>
+
+            {/* Next */}
+            <TouchableOpacity
+              disabled={page === totalPages}
+              onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className={[
+                "w-10 h-10 rounded-full items-center justify-center border",
+                page === totalPages
+                  ? "bg-white border-border"
+                  : "bg-primary-main border-primary-main",
+              ].join(" ")}
+              activeOpacity={0.85}
+            >
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={page === totalPages ? "#9CA3AF" : "#FFFFFF"}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
