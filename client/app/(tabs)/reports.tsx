@@ -119,7 +119,6 @@ const Reports = () => {
     }, [])
   );
 
-  // const renderReportItem = ({ item }: { item: any }) => (
   //   <View className="relative mb-4 rounded-2xl bg-white p-4 shadow-lg border border-border bg-surface">
   //     {/* Status pill (top-right, non-clickable) */}
   //     <View

@@ -24,6 +24,7 @@ interface User {
   email: string;
   avatar?: string;
   role?: "NormalUser" | "AdminUser";
+  status?: "active" | "inactive" | "deleted";
   normalUser?: NormalUserData;
   adminUser?: AdminUserData;
 }

@@ -46,7 +46,6 @@ export default function Profile() {
       <View
         className="bg-primary-dark px-4 py-3 shadow-lg shadow-primary-dark/40 border-b border-primary-main/30"
         style={{
-          // helps on Android for proper overlay
           zIndex: 10,
           elevation: 10,
         }}
@@ -69,10 +68,10 @@ export default function Profile() {
         <View
           className="absolute right-4 top-20 px-4 py-2 w-48 z-50 rounded-2xl border"
           style={{
-            backgroundColor: "#A78BFA", // primary.light
-            borderColor: "#6C4FE0", // primary.main
+            backgroundColor: "#A78BFA",
+            borderColor: "#6C4FE0",
             borderWidth: 2,
-            shadowColor: "#4C1D95", // primary.dark
+            shadowColor: "#4C1D95",
             shadowOpacity: 0.25,
             shadowRadius: 10,
             shadowOffset: { width: 0, height: 4 },
@@ -124,44 +123,110 @@ export default function Profile() {
                 </View>
               </View>
 
-              {/* Stats */}
-              <View className="mt-6 flex-row justify-between mx-6">
-                <View className="flex-1 mx-1 items-center">
-                  <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
-                    <Text className="font-montserratBold text-xl text-text-primary">
-                      {user.normalUser?.xp || 0}
-                    </Text>
-                    <Text className="font-montserrat text-xs text-text-secondary mt-1">
-                      Points
-                    </Text>
+              {/* Stats: show different for NormalUser vs AdminUser */}
+              {user.role === "NormalUser" && (
+                <View className="mt-6 flex-row justify-between mx-6">
+                  <View className="flex-1 mx-1 items-center">
+                    <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
+                      <Text className="font-montserratBold text-xl text-text-primary">
+                        {user.normalUser?.xp || 0}
+                      </Text>
+                      <Text className="font-montserrat text-xs text-text-secondary mt-1">
+                        Points
+                      </Text>
+                    </View>
+                  </View>
+                  <View className="flex-1 mx-1 items-center">
+                    <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
+                      <Text className="font-montserratBold text-xl text-text-primary">
+                        {user.normalUser?.badges.length || 0}
+                      </Text>
+                      <Text className="font-montserrat text-xs text-text-secondary mt-1">
+                        Badges
+                      </Text>
+                    </View>
+                  </View>
+                  <View className="flex-1 mx-1 items-center">
+                    <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
+                      <Text className="font-montserratBold text-xl text-text-primary">
+                        {user.normalUser?.reportsSubmitted || 0}
+                      </Text>
+                      <Text className="font-montserrat text-xs text-text-secondary mt-1">
+                        Reports
+                      </Text>
+                    </View>
                   </View>
                 </View>
-                <View className="flex-1 mx-1 items-center">
-                  <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
-                    <Text className="font-montserratBold text-xl text-text-primary">
-                      {user.normalUser?.badges.length || 0}
-                    </Text>
-                    <Text className="font-montserrat text-xs text-text-secondary mt-1">
-                      Badges
-                    </Text>
+              )}
+
+              {user.role === "AdminUser" && (
+                <View className="mt-6 flex-row justify-between mx-6">
+                  <View className="flex-1 mx-1 items-center">
+                    <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
+                      <Text className="font-montserratBold text-xl text-text-primary">
+                        {user.adminUser?.verifiedReports || 0}
+                      </Text>
+                      <Text className="font-montserrat text-xs text-text-secondary mt-1">
+                        Verified
+                      </Text>
+                    </View>
+                  </View>
+                  <View className="flex-1 mx-1 items-center">
+                    <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
+                      <Text className="font-montserratBold text-xl text-text-primary">
+                        {user.adminUser?.rejectedReports || 0}
+                      </Text>
+                      <Text className="font-montserrat text-xs text-text-secondary mt-1">
+                        Rejected
+                      </Text>
+                    </View>
+                  </View>
+                  <View className="flex-1 mx-1 items-center">
+                    <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
+                      <Text
+                        className="font-montserratBold text-base text-text-primary"
+                        numberOfLines={1}
+                      >
+                        {user.adminUser?.adminCode || "N/A"}
+                      </Text>
+                      <Text className="font-montserrat text-xs text-text-secondary mt-1">
+                        Admin Code
+                      </Text>
+                    </View>
                   </View>
                 </View>
-                <View className="flex-1 mx-1 items-center">
-                  <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
-                    <Text className="font-montserratBold text-xl text-text-primary">
-                      {user.normalUser?.reportsSubmitted || 0}
-                    </Text>
-                    <Text className="font-montserrat text-xs text-text-secondary mt-1">
-                      Reports
-                    </Text>
+              )}
+
+              {/* Admin Permissions list */}
+              {user.role === "AdminUser" && (
+                <View className="mt-6 px-2">
+                  <Text className="font-montserratBold text-sm text-text-primary mb-2">
+                    Permissions
+                  </Text>
+                  <View className="flex-row flex-wrap">
+                    {user.adminUser?.permissions?.length ? (
+                      user.adminUser.permissions.map((perm, idx) => (
+                        <View
+                          key={idx}
+                          className="px-3 py-1 rounded-full bg-primary-main/10 border border-primary-main/30 mr-2 mb-2"
+                        >
+                          <Text className="font-montserrat text-xs text-primary-dark">
+                            {perm}
+                          </Text>
+                        </View>
+                      ))
+                    ) : (
+                      <Text className="font-montserrat text-xs text-text-secondary">
+                        No permissions assigned
+                      </Text>
+                    )}
                   </View>
                 </View>
-              </View>
+              )}
             </View>
           </View>
 
-          {/* Quick Actions */}
-
+          {/* Quick Actions (same for both) */}
           <View className="mt-6 px-5">
             <Text className="font-montserratBold text-lg text-text-primary mb-3">
               Quick Actions
@@ -169,14 +234,16 @@ export default function Profile() {
 
             <View className="flex-row flex-wrap justify-between gap-y-3">
               {/* Badge tile */}
-              <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
-                <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
-                  <Ionicons name="ribbon-outline" size={24} color="#6C4FE0" />
-                </View>
-                <Text className="font-montserrat text-sm text-text-primary mt-2 text-center">
-                  My Badges
-                </Text>
-              </TouchableOpacity>
+              {user.role === "NormalUser" && (
+                <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
+                  <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
+                    <Ionicons name="ribbon-outline" size={24} color="#6C4FE0" />
+                  </View>
+                  <Text className="font-montserrat text-sm text-text-primary mt-2 text-center">
+                    My Badges
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               {/* Account */}
               <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
@@ -202,6 +269,7 @@ export default function Profile() {
                 </Text>
               </TouchableOpacity>
             </View>
+
             <View className="flex-row flex-wrap justify-start gap-y-3 gap-x-5">
               {/* About */}
               <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
@@ -260,4 +328,3 @@ export default function Profile() {
     </View>
   );
 }
-

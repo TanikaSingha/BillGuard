@@ -1,4 +1,5 @@
 import apiRequest from "@/lib/utils/apiRequest";
+import { RootState } from "@/store/store";
 import { FontAwesome } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
@@ -12,11 +13,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSelector } from "react-redux";
 
 const ReportDetails = () => {
   const { reportId } = useLocalSearchParams(); // get dynamic param from URL
   const router = useRouter();
-
+  const { user } = useSelector((state: RootState) => state.user);
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -143,7 +145,13 @@ const ReportDetails = () => {
         <Text style={styles.value}>{report.xpAwarded}</Text>
       </View>
       <TouchableOpacity
-        onPress={() => router.push("/reports")}
+        onPress={() => {
+          if (user?.role === "NormalUser") {
+            router.push("/(tabs)/reports");
+          } else if (user?.role === "AdminUser") {
+            router.push("/(admin)/reports");
+          }
+        }}
         style={styles.backBtn}
       >
         <Text style={styles.backBtnText}>Go Back</Text>
