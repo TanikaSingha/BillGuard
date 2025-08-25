@@ -85,9 +85,18 @@ const deleteUser = async (req, res) => {
   });
 };
 
+const getLeaderBoard = async (req, res) => {
+  const users = await NormalUser.find({})
+    .sort({ xp: -1 })
+    .limit(6)
+    .select("username xp leaderBoardPosition avatar");
+  return res.status(200).json({ data: users, msg: "LeaderBoard received!" });
+};
+
 module.exports = {
   uploadImage,
   getAllUsers,
   getUserInfo,
   deleteUser,
+  getLeaderBoard,
 };

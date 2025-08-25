@@ -121,7 +121,7 @@ export default function Profile() {
                 <View className="w-24 h-24 rounded-full border-4 border-primary-dark shadow-lg overflow-hidden bg-background">
                   <Image
                     className="w-full h-full"
-                    source={require("../../assets/images/profile.png")}
+                    source={{ uri: user?.avatar }}
                   />
                 </View>
               </View>
@@ -183,7 +183,10 @@ export default function Profile() {
 
             <View className="flex-row flex-wrap justify-between gap-y-3">
               {/* Badge tile */}
-              <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
+              <TouchableOpacity
+                className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90"
+                onPress={() => router.push("/badges/badges")}
+              >
                 <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
                   <Ionicons name="ribbon-outline" size={24} color="#6C4FE0" />
                 </View>

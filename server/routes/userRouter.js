@@ -7,6 +7,7 @@ const {
   getAllUsers,
   getUserInfo,
   deleteUser,
+  getLeaderBoard,
 } = require("../controllers/userController");
 const verifyAdmin = require("../middleware/adminMiddleware");
 userRouter.post(
@@ -18,4 +19,5 @@ userRouter.post(
 userRouter.get("/all", verifyToken, verifyAdmin, getAllUsers);
 userRouter.get("/details/:userId", verifyToken, verifyAdmin, getUserInfo);
 userRouter.delete("/delete/:userId", verifyToken, verifyAdmin, deleteUser);
+userRouter.get("/leaderBoard", verifyToken, getLeaderBoard);
 module.exports = userRouter;

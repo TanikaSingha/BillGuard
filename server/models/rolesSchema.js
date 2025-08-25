@@ -12,6 +12,10 @@ const normalUserSchema = new mongoose.Schema({
       dateEarned: { type: Date, default: Date.now },
     },
   ],
+  leaderBoardPosition: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const adminSchema = new mongoose.Schema({

@@ -186,6 +186,15 @@ const userSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    increaseReportCount: (state) => {
+      if (
+        state.user &&
+        state.user.normalUser &&
+        typeof state.user.normalUser.reportsSubmitted === "number"
+      ) {
+        state.user.normalUser.reportsSubmitted += 1;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -250,5 +259,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUser, clearError } = userSlice.actions;
+export const { setUser, clearError, increaseReportCount } = userSlice.actions;
 export default userSlice.reducer;
