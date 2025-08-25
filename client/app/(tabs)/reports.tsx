@@ -631,7 +631,7 @@ const Reports = () => {
                 })
               }
             >
-              <Text className="font-montserrat" style={{ color: "#6B7280" }}>
+              <Text className="font-montserrat" style={{ color: "black" }}>
                 Reset
               </Text>
             </TouchableOpacity>

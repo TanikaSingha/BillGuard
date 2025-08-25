@@ -67,24 +67,36 @@ export default function Profile() {
       {/* Settings menu */}
       {menuVisible && (
         <View
-          className="absolute right-4 top-20 px-4 py-2 w-48 z-50 rounded-2xl border"
+          className="absolute right-4 top-20 px-0 py-0 w-48 z-50 rounded-2xl border"
           style={{
-            backgroundColor: "#A78BFA", // primary.light
-            borderColor: "#6C4FE0", // primary.main
-            borderWidth: 2,
-            shadowColor: "#4C1D95", // primary.dark
-            shadowOpacity: 0.25,
-            shadowRadius: 10,
+            backgroundColor: "#FFFFFF", // surface
+            borderColor: "#E5E7EB", // neutral border
+            borderWidth: 1,
+            shadowColor: "#000", // subtle shadow
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
             shadowOffset: { width: 0, height: 4 },
           }}
         >
-          <View className="px-4 py-3 border-b border-border/60">
-            <Text className="font-montserratBold text-text-primary">
+          {/* Header */}
+          <View
+            className="px-4 py-3 border-b"
+            style={{ borderColor: "#E5E7EB" }}
+          >
+            <Text
+              className="font-montserratBold text-text-primary"
+              style={{ color: "#1F2937" }} // primary text
+            >
               Appearance
             </Text>
           </View>
+
+          {/* Dark mode toggle row */}
           <View className="px-4 py-3 flex-row items-center justify-between">
-            <Text className="text-base font-montserrat text-text-primary">
+            <Text
+              className="text-base font-montserrat"
+              style={{ color: "#1F2937" }}
+            >
               Dark Mode
             </Text>
             <Switch
@@ -92,6 +104,8 @@ export default function Profile() {
               onValueChange={() =>
                 toggleTheme(currentTheme === "light" ? "dark" : "light")
               }
+              trackColor={{ false: "#E5E7EB", true: "#C7D2FE" }} // subtle gray to light purple
+              thumbColor={currentTheme === "dark" ? "#6C4FE0" : "#FFFFFF"} // purple accent when active
             />
           </View>
         </View>
@@ -189,7 +203,10 @@ export default function Profile() {
               </TouchableOpacity>
 
               {/* Reports */}
-              <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
+              <TouchableOpacity
+                className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90"
+                onPress={() => router.push("/reports")}
+              >
                 <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
                   <Ionicons
                     name="document-text-outline"
@@ -204,7 +221,10 @@ export default function Profile() {
             </View>
             <View className="flex-row flex-wrap justify-start gap-y-3 gap-x-5">
               {/* About */}
-              <TouchableOpacity className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90">
+              <TouchableOpacity
+                className="w-[30%] aspect-square mb-4 rounded-2xl bg-surface border border-border shadow-md shadow-primary-dark/15 px-3 py-4 items-center justify-center active:opacity-90"
+                onPress={() => router.push("/about")}
+              >
                 <View className="w-10 h-10 items-center justify-center rounded-2xl bg-primary-main/10 border border-primary-main/30">
                   <Ionicons
                     name="information-circle-outline"
