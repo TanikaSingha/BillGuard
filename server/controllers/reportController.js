@@ -8,47 +8,62 @@ const { default: axios } = require("axios");
 // Admin can get all reports
 const getAllReports = async (req, res) => {
   const { role } = req.user;
-  const allowedFilters = [
-    "status",
-    "violationType",
-    "aiAnalysis.verdict",
-    "location",
-    "createdAt",
-  ];
+  const {
+    violationType,
+    status,
+    startDate,
+    endDate,
+    verdict,
+    location,
+    page = 1,
+    limit = 10,
+  } = req.query;
 
-  let filters = {};
-  if (role === "NormalUser") {
-    if (Object.keys(req.query).length > 0) {
-      throw new BadRequest("Normal users cannot filter reports.");
-    }
-  } else {
-    for (const key of Object.keys(req.query)) {
-      if (allowedFilters.includes(key)) {
-        filters[key] = req.query[key];
-      }
+  // Restrict filters for NormalUser
+  if (
+    role === "NormalUser" &&
+    (violationType || status || startDate || endDate || verdict || location)
+  ) {
+    throw new BadRequest("Normal users cannot filter reports.");
+  }
+
+  const query = {};
+
+  // Apply filters only for Admin/Other roles
+  if (role !== "NormalUser") {
+    if (violationType) query.violationType = violationType;
+    if (status) query.status = status;
+    if (verdict) query["aiAnalysis.verdict"] = verdict;
+    if (location) query.location = location;
+
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
     }
   }
 
-  const { page = 1, limit = 10 } = req.query;
-  if (isNaN(page) || isNaN(limit)) {
-    throw new BadRequest("Page and limit must be numbers.");
-  }
+  const pageNumber = parseInt(page, 10) || 1;
+  const pageSize = parseInt(limit, 10) || 10;
+  const skip = (pageNumber - 1) * pageSize;
 
-  const reports = await Report.find(filters)
+  const reports = await Report.find(query)
     .populate("reportedBy", "username email role")
-    .skip((page - 1) * limit)
-    .limit(parseInt(limit));
+    .sort({ createdAt: -1 }) // newest first
+    .skip(skip)
+    .limit(pageSize);
 
-  const total = await Report.countDocuments(filters);
+  const totalReports = await Report.countDocuments(query);
 
   return res.status(StatusCodes.OK).json({
     data: reports,
-    total,
-    page: parseInt(page),
-    limit: parseInt(limit),
+    total: totalReports,
+    page: pageNumber,
+    totalPages: Math.ceil(totalReports / pageSize),
     message: "Reports retrieved successfully.",
   });
 };
+
 
 const createReport = async (req, res) => {
   console.log("Called createReport");

@@ -44,11 +44,17 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
-      default: "/images/no-profile.png",
+      default:
+        "https://res.cloudinary.com/dzjbxojvu/image/upload/v1756096742/profile_n3nxlk.png",
     },
     password: {
       type: String,
       required: [true, "Please Enter Your Password!"],
+    },
+    status: {
+      type: String,
+      enum: ["active", "inactive", "deleted"],
+      default: "active",
     },
   },
   options
