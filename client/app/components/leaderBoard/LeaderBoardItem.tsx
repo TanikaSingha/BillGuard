@@ -6,8 +6,7 @@ interface LeaderboardItemProps {
   item: {
     avatar: string;
     username: string;
-    score: number;
-    playerLevel: number;
+    xp: number;
   };
   rank: number;
 }
@@ -50,7 +49,7 @@ const LeaderboardItem: React.FC<LeaderboardItemProps> = ({ item, rank }) => {
 
           <View className="px-3 py-1 rounded-full bg-primary-main/20">
             <Text className="font-montserratBold text-[13px] text-primary-dark">
-              {item.score} pts
+              {item.xp} pts
             </Text>
           </View>
         </View>
@@ -64,7 +63,7 @@ const LeaderboardItem: React.FC<LeaderboardItemProps> = ({ item, rank }) => {
             style={{ marginRight: 4 }}
           />
           <Text className="font-montserrat text-xs text-text-secondary">
-            Level {item.playerLevel}
+            Level 1
           </Text>
         </View>
       </View>

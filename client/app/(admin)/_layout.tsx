@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { StyleSheet, View } from "react-native";
@@ -78,16 +78,16 @@ const _layout = () => {
         }}
       />
       <Tabs.Screen
-        name="about"
+        name="leaderboard"
         options={{
-          tabBarIcon: ({ color, size, focused }) => (
-            <AdminTabIcon
-              name="information-circle-outline"
-              color={color}
-              size={size}
-              focused={focused}
-            />
+          tabBarIcon: ({ focused, color, size }) => (
+            <View
+              style={[styles.iconWrapper, focused && styles.iconWrapperActive]}
+            >
+              <MaterialIcons name="leaderboard" size={size} color={color} />
+            </View>
           ),
+          headerShown: false,
         }}
       />
       <Tabs.Screen

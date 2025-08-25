@@ -19,7 +19,7 @@ const getAllReports = async (req, res) => {
     endDate,
     verdict,
     location,
-    page = 1,
+    page,
     limit = 10,
   } = req.query;
 
@@ -41,33 +41,41 @@ const getAllReports = async (req, res) => {
     if (location) query.location = location;
 
     if (startDate || endDate) {
-      query.createdAt = {};
-      if (startDate) query.createdAt.$gte = new Date(startDate);
-      if (endDate) query.createdAt.$lte = new Date(endDate);
+      query.submittedAt = {};
+      if (startDate) query.submittedAt.$gte = new Date(startDate);
+      if (endDate) query.submittedAt.$lte = new Date(endDate);
     }
   }
 
-  const pageNumber = parseInt(page, 10) || 1;
-  const pageSize = parseInt(limit, 10) || 10;
-  const skip = (pageNumber - 1) * pageSize;
-
-  const reports = await Report.find(query)
-    .populate("reportedBy", "username email role")
-    .sort({ createdAt: -1 }) // newest first
-    .skip(skip)
-    .limit(pageSize);
-
   const totalReports = await Report.countDocuments(query);
+
+  let reportsQuery = Report.find(query)
+    .populate("reportedBy", "username email role")
+    .sort({ submittedAt: -1 });
+
+  // Apply pagination only if page is provided
+  let pageNumber, pageSize;
+  if (page) {
+    pageNumber = parseInt(page, 10) || 1;
+    pageSize = parseInt(limit, 10) || 10;
+    const skip = (pageNumber - 1) * pageSize;
+    reportsQuery = reportsQuery.skip(skip).limit(pageSize);
+  } else {
+    // No page provided → return all
+    pageNumber = 1;
+    pageSize = totalReports;
+  }
+
+  const reports = await reportsQuery;
 
   return res.status(StatusCodes.OK).json({
     data: reports,
     total: totalReports,
     page: pageNumber,
-    totalPages: Math.ceil(totalReports / pageSize),
+    totalPages: page ? Math.ceil(totalReports / pageSize) : 1,
     message: "Reports retrieved successfully.",
   });
 };
-
 const createReport = async (req, res) => {
   console.log("Called createReport");
   const { id, role } = req.user;
@@ -170,6 +178,8 @@ const updateReport = async (req, res) => {
 
   const fields = { ...req.body };
   const oldStatus = report.status;
+
+  // Admin-specific logic
   if (
     role === "AdminUser" &&
     fields.status &&
@@ -203,21 +213,33 @@ const updateReport = async (req, res) => {
     const xpDiff = newXP - (report.xpAwarded || 0);
 
     if (xpDiff !== 0) {
-      await NormalUser.findByIdAndUpdate(report.reportedBy._id, {
-        $inc: { xp: xpDiff },
-      });
-      report.xpAwarded = newXP;
-      await checkAndAwardBadges(report.reportedBy, { report });
-      await report.save();
-    }
-    console.log("There");
+      const user = await NormalUser.findByIdAndUpdate(
+        report.reportedBy._id,
+        { $inc: { xp: xpDiff } },
+        { new: true }
+      );
 
+      report.xpAwarded = newXP;
+      await checkAndAwardBadges(report.reportedBy._id, { report });
+      await report.save();
+
+      const topUsers = await NormalUser.find({})
+        .sort({ xp: -1 })
+        .limit(5)
+        .select("_id xp leaderBoardPosition");
+
+      for (let i = 0; i < topUsers.length; i++) {
+        topUsers[i].leaderBoardPosition = i + 1;
+        await topUsers[i].save();
+      }
+    }
+
+    // Admin verification stats
     if (report.reviewedBy) {
       if (
         report.status === "verified_unauthorized" ||
         report.status === "verified_authorized"
       ) {
-        console.log("Here");
         await AdminUser.findByIdAndUpdate(report.reviewedBy, {
           $inc: { verifiedReports: 1 },
         });

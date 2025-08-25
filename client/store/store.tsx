@@ -1,4 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
+import leaderBoardReducer from "../lib/Slices/leaderBoardSlice";
 import locationReducer from "../lib/Slices/locationSlice";
 import reportReducer from "../lib/Slices/reportSlice";
 import userReducer from "../lib/Slices/userSlice";
@@ -8,6 +9,7 @@ export const store = configureStore({
     user: userReducer,
     location: locationReducer,
     report: reportReducer,
+    leaderBoard: leaderBoardReducer,
   },
 });
 

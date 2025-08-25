@@ -1,5 +1,5 @@
 import LeaderBoardPage from "../components/common/LeaderBoard";
 
-export default function UserLeaderboard() {
+export default function AdminLeaderboard() {
   return <LeaderBoardPage />;
 }

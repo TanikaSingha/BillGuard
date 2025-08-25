@@ -23,6 +23,8 @@ export const getLeaderBoard = createAsyncThunk(
           Authorization: `Bearer ${await SecureStore.getItemAsync("authToken")}`,
         },
       });
+      console.log(response.data.data);
+
       return response.data.data;
     } catch (error) {
       let errorMessage = "An Error Occurred!";
@@ -39,6 +41,8 @@ export const getLeaderBoard = createAsyncThunk(
       ) {
         errorMessage = (error as any).response.data.message;
       }
+      console.log(errorMessage);
+
       return rejectWithValue(errorMessage);
     }
   }

@@ -58,20 +58,20 @@ export default function Dashboard({ role }: { role: string }) {
 
   const stats = useMemo(() => {
     const total = reports?.length || 0;
+
     const pending = reports?.filter((r) => r.status === "pending").length || 0;
-    const resolved =
-      reports?.filter((r) => r.status === "resolved").length || 0;
     const verified_authorized =
       reports?.filter((r) => r.status === "verified_authorized").length || 0;
     const verified_unauthorized =
       reports?.filter((r) => r.status === "verified_unauthorized").length || 0;
-
+    const rejected =
+      reports?.filter((r) => r.status === "rejected").length || 0;
     return {
       total,
       pending,
-      resolved,
       verified_authorized,
       verified_unauthorized,
+      rejected,
     };
   }, [reports]);
 
@@ -85,22 +85,22 @@ export default function Dashboard({ role }: { role: string }) {
       legendFontSize: 13,
     },
     {
-      name: "Resolved",
-      count: stats.resolved,
+      name: "Authorized",
+      count: stats.verified_authorized,
       color: "#22c55e",
       legendFontColor: "#374151",
       legendFontSize: 13,
     },
     {
-      name: "Authorized",
-      count: stats.verified_authorized,
+      name: "UnAuthorized",
+      count: stats.verified_unauthorized,
       color: "#3b82f6",
       legendFontColor: "#374151",
       legendFontSize: 13,
     },
     {
-      name: "Unauthorized",
-      count: stats.verified_unauthorized,
+      name: "Rejected",
+      count: stats.rejected,
       color: "#ef4444",
       legendFontColor: "#374151",
       legendFontSize: 13,
@@ -108,14 +108,14 @@ export default function Dashboard({ role }: { role: string }) {
   ];
 
   const barData = {
-    labels: ["Pending", "Resolved", "Auth", "Unauth"],
+    labels: ["Pending", "Authorized", "UnAuthorized", "Rejected"],
     datasets: [
       {
         data: [
           stats.pending,
-          stats.resolved,
           stats.verified_authorized,
           stats.verified_unauthorized,
+          stats.rejected,
         ],
       },
     ],
@@ -211,7 +211,7 @@ export default function Dashboard({ role }: { role: string }) {
             },
             {
               label: "Resolved",
-              value: stats.resolved,
+              value: stats.verified_authorized + stats.verified_unauthorized,
               color: "bg-green-100 text-green-700",
             },
             {
