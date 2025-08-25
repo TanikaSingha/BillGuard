@@ -24,8 +24,10 @@ const getModelResponse = async (req, res) => {
     if (!response) throw new Error("No response from AI model service!");
 
     const annotatedImageUrl = response.data.annotated_image_url;
-    // const hoardingDimensions = calculateBillboardDimensions(exifData, estimatedDistance);
-    const hoardingDimensions = {};
+    const hoardingDimensions = calculateBillboardDimensions(
+      exifData,
+      estimatedDistance
+    );
     const hoardings = [
       {
         width: hoardingDimensions?.width || 200,
@@ -39,16 +41,11 @@ const getModelResponse = async (req, res) => {
     const evaluation = await evaluateHoardingViolations(hoardings);
 
     const verdict = {
-      annotatedImageUrl:
-        "https://res.cloudinary.com/dzjbxojvu/image/upload/v1756121237/aiUploads/ulygp55mvqmrdljrsfxe.jpg",
+      annotatedImageUrl,
       location: { latitude, longitude },
       details: hoardings[0],
-      violations: ["size_violation", "structural_hazard"],
-      aiAnalysis: {
-        verdict: "unauthorized",
-        confidence: 0.88,
-        detectedObjects: ["oversized hoarding"],
-      },
+      violations: evaluation.results[0].violationType,
+      aiAnalysis: evaluation.results[0].aiAnalysis,
     };
 
     return res.status(200).json({ status: "success", verdict });
