@@ -24,12 +24,14 @@ const getModelResponse = async (req, res) => {
     if (!response) throw new Error("No response from AI model service!");
 
     const annotatedImageUrl = response.data.annotated_image_url;
-    // const hoardingDimensions = calculateBillboardDimensions(exifData, estimatedDistance);
-    const hoardingDimensions = {};
+    const hoardingDimensions = calculateBillboardDimensions(
+      exifData,
+      estimatedDistance
+    );
     const hoardings = [
       {
-        width: hoardingDimensions?.width || 50,
-        height: hoardingDimensions?.height || 10,
+        width: hoardingDimensions?.width || 200,
+        height: hoardingDimensions?.height || 180,
         gps: { lat: latitude, lon: longitude },
         angle: hoardingDimensions?.angle || 20,
         ocrText: [{ text: "alcohol" }],

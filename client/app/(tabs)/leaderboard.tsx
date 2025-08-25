@@ -248,40 +248,11 @@ const LeaderBoardPage = () => {
       score: 1420,
     },
     {
-      username: "Ethan",
-      avatar: "https://i.pravatar.cc/150?img=5",
-      playerLevel: 7,
-      score: 1300,
-    },
-    {
-      username: "Fiona",
-      avatar: "https://i.pravatar.cc/150?img=6",
-      playerLevel: 6,
-      score: 1150,
-    },
-    {
-      username: "George",
-      avatar: "https://i.pravatar.cc/150?img=7",
-      playerLevel: 5,
-      score: 980,
-    },
-    {
-      username: "Hannah",
-      avatar: "https://i.pravatar.cc/150?img=8",
-      playerLevel: 4,
-      score: 850,
-    },
-    {
-      username: "Ian",
-      avatar: "https://i.pravatar.cc/150?img=9",
-      playerLevel: 3,
-      score: 700,
-    },
-    {
-      username: "Jane",
-      avatar: "https://i.pravatar.cc/150?img=10",
-      playerLevel: 2,
-      score: 550,
+      username: "smith123",
+      avatar:
+        "https://res.cloudinary.com/dzjbxojvu/image/upload/v1756096742/profile_n3nxlk.png",
+      playerLevel: 1,
+      score: 0,
     },
   ];
 
