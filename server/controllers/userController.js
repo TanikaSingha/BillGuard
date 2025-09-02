@@ -93,10 +93,26 @@ const getLeaderBoard = async (req, res) => {
   return res.status(200).json({ data: users, msg: "LeaderBoard received!" });
 };
 
+const getBadgeDetails = async (req, res) => {
+  const { id } = req.user;
+  const user = await NormalUser.findById(id).select("badges").lean();
+  if (!user) {
+    return res
+      .status(StatusCodes.NOT_FOUND)
+      .json({ message: "User not found" });
+  }
+
+  return res.json({
+    data: user.badges,
+    message: "Badges fetched successfully",
+  });
+};
+
 module.exports = {
   uploadImage,
   getAllUsers,
   getUserInfo,
   deleteUser,
   getLeaderBoard,
+  getBadgeDetails,
 };

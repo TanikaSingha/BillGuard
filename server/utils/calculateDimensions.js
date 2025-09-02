@@ -1,42 +1,33 @@
 function calculateBillboardDimensions(exifData, distanceMeters = 10) {
-  if (!exifData || !distanceMeters) {
-    throw new Error("Missing EXIF data or distance to billboard");
+  if (distanceMeters <= 0) {
+    throw new Error("Invalid distance to billboard");
   }
 
-  const {
-    FocalLength, // in mm
-    ExifImageWidth, // in pixels
-    ExifImageHeight, // in pixels
-    SensorWidth, // in mm (approx, can be derived from camera model)
-    SensorHeight, // in mm
-  } = exifData;
+  const DEFAULT_EXIF = {
+    FocalLength: 4.25,
+    ExifImageWidth: 4000,
+    ExifImageHeight: 3000,
+    SensorWidth: 4.9,
+    SensorHeight: 3.7,
+    Orientation: 0,
+  };
 
-  if (
-    !FocalLength ||
-    !ExifImageWidth ||
-    !ExifImageHeight ||
-    !SensorWidth ||
-    !SensorHeight
-  ) {
-    throw new Error("Incomplete EXIF data for calculation");
-  }
+  const exif = { ...DEFAULT_EXIF, ...exifData };
 
-  // Field of View (FoV) in radians
+  const { FocalLength, SensorWidth, SensorHeight } = exif;
+
   const horizontalFoV = 2 * Math.atan(SensorWidth / (2 * FocalLength));
   const verticalFoV = 2 * Math.atan(SensorHeight / (2 * FocalLength));
-
-  // Billboard real-world dimensions based on FoV
   const billboardWidth = 2 * distanceMeters * Math.tan(horizontalFoV / 2);
   const billboardHeight = 2 * distanceMeters * Math.tan(verticalFoV / 2);
 
-  // Angle of orientation (optional, from EXIF Orientation tag)
-  const angle = exifData.Orientation || 0;
+  const angle = exif.Orientation || 0;
 
   return {
-    width: billboardWidth.toFixed(2), // meters
-    height: billboardHeight.toFixed(2), // meters
+    width: Number(billboardWidth.toFixed(2)),
+    height: Number(billboardHeight.toFixed(2)),
     angle,
   };
 }
 
-module.exports = { calculateBillboardDimensions };
+module.exports = calculateBillboardDimensions;

@@ -4,6 +4,7 @@ const NormalUser = require("../models/userSchema");
 const checkAndAwardBadges = async (userId, action = {}) => {
   const user = await NormalUser.findById(userId);
   if (!user) return;
+  console.log(user);
 
   const reportsCount = await Report.countDocuments({ reportedBy: userId });
   const zonesReported = await Report.distinct("location.zoneId", {
@@ -66,6 +67,7 @@ const checkAndAwardBadges = async (userId, action = {}) => {
     );
     await user.save();
   }
+  console.log(user);
 };
 
 const hasBadge = (user, badgeName) =>

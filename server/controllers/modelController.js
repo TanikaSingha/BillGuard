@@ -3,9 +3,7 @@ const { StatusCodes } = require("http-status-codes");
 const { BadRequest } = require("../errors");
 const { Error } = require("mongoose");
 const evaluateHoardingViolations = require("../utils/violationEvaluator");
-const {
-  calculateBillboardDimensions,
-} = require("../utils/calculateDimensions");
+const calculateBillboardDimensions = require("../utils/calculateDimensions");
 
 const getModelResponse = async (req, res) => {
   try {
