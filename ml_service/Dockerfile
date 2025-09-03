@@ -35,4 +35,4 @@ EXPOSE 8000
 ENV YOLO_VERBOSE=False
 
 # Run the FastAPI app (package path = ml_service.app:app)
-CMD ["uvicorn", "ml_service.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
