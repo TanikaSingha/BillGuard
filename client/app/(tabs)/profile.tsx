@@ -154,7 +154,7 @@ export default function Profile() {
                 <View className="flex-1 mx-1 items-center">
                   <View className="px-4 py-3 rounded-2xl bg-background border border-border w-full items-center">
                     <Text className="font-montserratBold text-xl text-text-primary">
-                      {user.normalUser?.badges.length || 1}
+                      {user.normalUser?.badges.length || 0}
                     </Text>
                     <Text className="font-montserrat text-xs text-text-secondary mt-1">
                       Badges
