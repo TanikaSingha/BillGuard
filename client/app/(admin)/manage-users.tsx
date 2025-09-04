@@ -1,7 +1,7 @@
 import apiRequest from "@/lib/utils/apiRequest";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { MotiView } from "moti";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -13,6 +13,8 @@ import {
   View,
 } from "react-native";
 
+import { Ionicons } from "@expo/vector-icons";
+
 const ManageUsers = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -22,6 +24,7 @@ const ManageUsers = () => {
   const [status, setStatus] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [showFilter, setShowFilter] = useState(false);
 
   // Meta
   const [totalPages, setTotalPages] = useState(1);
@@ -58,13 +61,13 @@ const ManageUsers = () => {
     const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=6c3ef4&color=fff`;
 
     return (
-      <View className="mb-3 rounded-2xl bg-surface border border-border p-4 shadow-sm">
+      <View className="m-2 rounded-2xl bg-surface border border-border p-4 shadow-md">
         {/* Top Row: Avatar + text + status pill */}
         <View className="flex-row items-start">
           {/* Circle avatar */}
           <Image
             source={{ uri: avatar }}
-            className="w-16 h-16 rounded-full mr-3 border-2"
+            className="w-12 h-12 rounded-full mr-3 border-2"
             style={{ borderColor: "#6c4fe0ff" }} // optional purple ring
           />
 
@@ -77,7 +80,7 @@ const ManageUsers = () => {
               {item.name}
             </Text>
             <Text
-              className="font-montserrat text-sm text-text-secondary"
+              className="font-montserrat text-xs text-text-secondary"
               numberOfLines={1}
             >
               @{item.username}
@@ -90,32 +93,34 @@ const ManageUsers = () => {
             </Text>
           </View>
 
-          {/* Status pill (top-right corner) */}
-          <Text
-            className={[
-              "px-2 py-0.5 rounded-full font-montserratBold text-xs",
-              item.status === "active"
-                ? "bg-green-100 text-success"
-                : item.status === "inactive"
-                  ? "bg-yellow-100 text-warning"
-                  : "bg-red-100 text-error",
-            ].join(" ")}
-          >
-            {item.status === "active" ? "ACTIVE" : "UNKNOWN"}
-          </Text>
-        </View>
-
-        {/* Bottom Row: Details button */}
-        <View className="flex-row mt-3">
-          <TouchableOpacity
-            onPress={() => router.push(`/users/${item._id}`)}
-            className="ml-auto flex-row items-center rounded-xl bg-primary-main px-3 py-2"
-          >
-            <Text className="font-montserratBold text-white text-sm mr-1">
-              See details
+          {/* Right side: status + info icon */}
+          <View className="items-end">
+            {/* Status pill */}
+            <Text
+              className={[
+                "px-2 py-0.5 rounded-full font-montserratBold text-[10px] mb-4",
+                item.status === "active"
+                  ? "bg-green-100 text-success"
+                  : item.status === "inactive"
+                    ? "bg-yellow-100 text-warning"
+                    : "bg-red-100 text-error",
+              ].join(" ")}
+            >
+              {item.status === "active" ? "active" : "unknown"}
             </Text>
-            <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-          </TouchableOpacity>
+
+            {/* Info icon */}
+            <TouchableOpacity
+              onPress={() => router.push(`/users/${item._id}`)}
+              activeOpacity={0.6}
+            >
+              <Ionicons
+                name="information-circle-outline"
+                size={22}
+                color="#4B5563" // dark grey
+              />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -139,13 +144,13 @@ const ManageUsers = () => {
       </View>
       <View className="px-6 py-4">
         {/* Search Bar */}
-        <View className="flex-row items-center bg-white border border-border rounded-full px-3 mb-4">
+        <View className="flex-row items-center bg-white border border-border rounded-xl px-3 mb-4">
           {/* Left search icon */}
           <Ionicons name="search-outline" size={20} color="#9CA3AF" />
 
           {/* Input */}
           <TextInput
-            className="flex-1 px-2 py-4 font-montserrat text-text-primary"
+            className="flex-1 px-2 py-4 text-sm font-montserrat text-text-primary"
             placeholder="Search by name, username, or email"
             value={search}
             onChangeText={setSearch}
@@ -156,41 +161,63 @@ const ManageUsers = () => {
             placeholderTextColor="#9CA3AF"
           />
 
+          {/* Clear button */}
           {search.length > 0 && (
             <TouchableOpacity onPress={() => setSearch("")} className="ml-2">
               <Ionicons name="close-circle" size={20} color="#9CA3AF" />
             </TouchableOpacity>
           )}
+
+          {/* Filter button */}
+          <TouchableOpacity
+            onPress={() => setShowFilter((prev) => !prev)}
+            activeOpacity={0.9}
+            className="ml-2 w-9 h-9 rounded-lg bg-gray-100 items-center justify-center border border-gray-300"
+          >
+            <MotiView
+              from={{ rotate: "0deg" }}
+              animate={{ rotate: showFilter ? "180deg" : "0deg" }}
+              transition={{ type: "timing", duration: 300 }}
+            >
+              <Ionicons
+                name={showFilter ? "close" : "filter-outline"}
+                size={20}
+                color="#1F2937"
+              />
+            </MotiView>
+          </TouchableOpacity>
         </View>
 
         {/* Filters */}
-        <View className="flex-row mb-4 space-x-3">
-          {["all", "active", "inactive", "deleted"].map((s) => {
-            const selected = status === s || (s === "all" && !status);
-            return (
-              <TouchableOpacity
-                key={s}
-                onPress={() => {
-                  setStatus(s === "all" ? null : s);
-                  setPage(1);
-                }}
-                className={[
-                  "flex-1 px-2 py-2 mx-2 rounded-full",
-                  selected ? "bg-primary-main" : "bg-gray-200",
-                ].join(" ")}
-              >
-                <Text
+        {showFilter && (
+          <View className="flex-row mb-4">
+            {["all", "active", "inactive", "deleted"].map((s) => {
+              const selected = status === s || (s === "all" && !status);
+              return (
+                <TouchableOpacity
+                  key={s}
+                  onPress={() => {
+                    setStatus(s === "all" ? null : s);
+                    setPage(1);
+                  }}
                   className={[
-                    "font-montserratBold text-center text-xs",
-                    selected ? "text-white" : "text-text-primary",
+                    "flex-1 px-3 py-2 mx-1 rounded-full",
+                    selected ? "bg-primary-main" : "bg-gray-200",
                   ].join(" ")}
                 >
-                  {s.toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+                  <Text
+                    className={[
+                      "font-montserratBold text-center text-xs",
+                      selected ? "text-white" : "text-text-primary",
+                    ].join(" ")}
+                  >
+                    {s.toUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
 
         {/* User List */}
         {loading ? (
