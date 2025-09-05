@@ -1,5 +1,6 @@
 import { RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import React from "react";
 import {
@@ -22,6 +23,7 @@ import { useSelector } from "react-redux";
 const { width } = Dimensions.get("window");
 
 export default function Index() {
+  const isFocused = useIsFocused();
   const [fontsLoaded] = useFonts({
     Montserrat: require("../../assets/fonts/Montserrat-Regular.ttf"),
     "Montserrat-Bold": require("../../assets/fonts/Montserrat-Bold.ttf"),

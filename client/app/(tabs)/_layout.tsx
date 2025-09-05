@@ -22,6 +22,10 @@ const _layout = () => {
         tabBarIconStyle: {
           margin: 8,
         },
+        // 👇 disable Android ripple
+        tabBarButton: (props) => (
+          <TouchableOpacity {...(props as any)} activeOpacity={1} />
+        ),
       }}
     >
       <Tabs.Screen

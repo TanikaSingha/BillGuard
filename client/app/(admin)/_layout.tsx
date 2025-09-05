@@ -1,7 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 const AdminTabIcon = ({
   name,
@@ -23,6 +23,7 @@ const _layout = () => {
   return (
     <Tabs
       screenOptions={{
+        headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
           marginHorizontal: 20,
@@ -35,7 +36,10 @@ const _layout = () => {
         tabBarActiveTintColor: "#FFFFFF",
         tabBarInactiveTintColor: "#A78BFA",
         tabBarIconStyle: { margin: 8 },
-        headerShown: false,
+        // 👇 disable Android ripple
+        tabBarButton: (props) => (
+          <TouchableOpacity {...(props as any)} activeOpacity={1} />
+        ),
       }}
     >
       <Tabs.Screen

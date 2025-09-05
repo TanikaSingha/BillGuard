@@ -2,11 +2,12 @@ import { logoutUser } from "@/lib/Slices/userSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { useRouter } from "expo-router";
 import { AnimatePresence, MotiView } from "moti";
 import React, { useCallback, useContext, useState } from "react";
+
 import {
   Image,
   Pressable,
@@ -16,12 +17,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Easing } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import { ThemeContext, colors } from "../context/ThemeContext";
 
 export default function Profile() {
+  const isFocused = useIsFocused();
   const [fontsLoaded] = useFonts({
     Montserrat: require("../../assets/fonts/Montserrat-Regular.ttf"),
     "Montserrat-Bold": require("../../assets/fonts/Montserrat-Bold.ttf"),
@@ -54,17 +55,7 @@ export default function Profile() {
   }
 
   return (
-    <MotiView
-      key={key}
-      from={{ translateX: 50, opacity: 0 }}
-      animate={{ translateX: 0, opacity: 1 }}
-      transition={{
-        type: "timing",
-        duration: 400,
-        easing: Easing.out(Easing.exp),
-      }}
-      className="flex-1 bg-background"
-    >
+    <View className="flex-1 bg-background">
       {/* Header */}
       <View
         className="bg-primary-dark px-4 py-3 shadow-lg shadow-primary-dark/40 border-b border-primary-main/30"
@@ -339,7 +330,7 @@ export default function Profile() {
                 onPress={async () => {
                   const result = await dispatch(logoutUser());
                   if (logoutUser.fulfilled.match(result)) {
-                    router.replace("/(auth)/login");
+                    router.push("/(auth)/login");
                   }
                 }}
               >
@@ -383,6 +374,6 @@ export default function Profile() {
           </View>
         </ScrollView>
       </SafeAreaView>
-    </MotiView>
+    </View>
   );
 }
