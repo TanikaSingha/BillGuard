@@ -168,28 +168,6 @@ export const getAllReports = createAsyncThunk<
   }
 });
 
-export const voteReport = createAsyncThunk<
-  any,
-  { reportId: string; voteType: string }
->("report/voteReport", async ({ reportId, voteType }, { rejectWithValue }) => {
-  try {
-    const token = await SecureStore.getItemAsync("authToken");
-    const response = await apiRequest.post(
-      `/report/vote/${reportId}`,
-      { voteType },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data.data;
-  } catch (error) {
-    console.error("Error voting on report:", error);
-    return rejectWithValue("Failed to vote on report");
-  }
-});
-
 const reportSlice = createSlice({
   name: "report",
   initialState,
@@ -263,23 +241,6 @@ const reportSlice = createSlice({
         state.reports = action.payload?.data || [];
       })
       .addCase(getAllReports.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload as string;
-      })
-      .addCase(voteReport.pending, (state) => {
-        state.status = "loading";
-      })
-      .addCase(voteReport.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        const updatedReport = action.payload;
-        const index = state.reports.findIndex(
-          (r) => r._id === updatedReport._id
-        );
-        if (index !== -1) {
-          state.reports[index] = updatedReport; // safer to replace with backend response
-        }
-      })
-      .addCase(voteReport.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload as string;
       });

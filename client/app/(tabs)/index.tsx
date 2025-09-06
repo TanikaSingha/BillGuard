@@ -202,7 +202,7 @@ export default function Index() {
                     {item.location?.address || "Unknown Location"}
                   </Text>
                   <Text className="font-montserrat text-text-secondary text-xs mt-1">
-                    Confidence:{" "}
+                    Crowd Confidence:{" "}
                     <Text className="text-primary-main font-montserratBold">
                       {item.crowdConfidence
                         ? `${item.crowdConfidence.toFixed(1)}%`
@@ -210,7 +210,7 @@ export default function Index() {
                     </Text>
                   </Text>
                   <Text className="font-montserrat text-text-secondary text-xs mt-1">
-                    Verified Status:{" "}
+                    Status:{" "}
                     <Text className="text-primary-main font-montserratBold">
                       {item.verifiedStatus ?? "N/A"}
                     </Text>

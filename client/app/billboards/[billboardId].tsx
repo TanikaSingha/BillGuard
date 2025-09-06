@@ -1,10 +1,8 @@
-import { voteReport } from "@/lib/Slices/reportSlice";
-import apiRequest from "@/lib/utils/apiRequest";
-import { AppDispatch } from "@/store/store";
+import { fetchBillboard, voteReport } from "@/lib/Slices/billBoardSlice";
+import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import * as SecureStore from "expo-secure-store";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -14,13 +12,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const BillBoardDetails = () => {
   const { billboardId } = useLocalSearchParams();
-  const [billboard, setBillboard] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { status, error, selected } = useSelector(
+    (state: RootState) => state.billboard
+  );
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
 
@@ -29,24 +27,7 @@ const BillBoardDetails = () => {
   };
 
   useEffect(() => {
-    const fetchBillboard = async () => {
-      try {
-        const token = await SecureStore.getItemAsync("authToken");
-        const res = await apiRequest.get<{ data: any }>(
-          `/billboard/details/${billboardId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (!res) throw new Error("Failed to fetch billboard");
-        setBillboard(res.data.data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBillboard();
+    dispatch(fetchBillboard(billboardId as string));
   }, [billboardId]);
 
   const renderReportItem = ({ item }: { item: any }) => {
@@ -63,9 +44,12 @@ const BillBoardDetails = () => {
 
     const confidence =
       typeof item.aiAnalysis?.confidence === "number"
-        ? (item.aiAnalysis.confidence * 100).toFixed(1)
+        ? (item.aiAnalysis.confidence * 100).toFixed(2)
         : null;
-
+    const communityTrustScore =
+      typeof item.communityTrustScore === "number"
+        ? (item.communityTrustScore * 100).toFixed(2)
+        : 0;
     const thumb = item.annotatedURL || item.imageURL;
 
     return (
@@ -149,6 +133,15 @@ const BillBoardDetails = () => {
                 AI Confidence: {confidence}%
               </Text>
             )}
+           
+            {communityTrustScore !== null && (
+              <Text
+                className="mt-0.5 text-sm font-montserrat"
+                style={{ color: "#6B7280" }}
+              >
+                Community Trust Score: {communityTrustScore}
+              </Text>
+            )}
 
             {/* Issues */}
             <View className="mt-1 flex-row flex-wrap gap-2">
@@ -229,10 +222,10 @@ const BillBoardDetails = () => {
     );
   };
 
-  if (loading)
+  if (status === "loading")
     return <ActivityIndicator size="large" style={{ marginTop: 20 }} />;
   if (error) return <Text style={{ color: "red", margin: 20 }}>{error}</Text>;
-  if (!billboard) return <Text>No billboard data found.</Text>;
+  if (!selected) return <Text>No billboard data found.</Text>;
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
@@ -242,25 +235,25 @@ const BillBoardDetails = () => {
           <Text>Back</Text>
         </TouchableOpacity>
         <Text className="text-xl font-montserratBold mb-2 text-gray-900">
-          Billboard @ {billboard.location?.address || "Unknown location"}
+          Billboard @ {selected.location?.address || "Unknown location"}
         </Text>
         <Text className="text-sm text-gray-600 mb-1">
-          Coordinates: {billboard.location?.coordinates?.join(", ")}
+          Coordinates: {selected.location?.coordinates?.join(", ")}
         </Text>
         <Text className="text-sm text-gray-600 mb-1">
-          Status: {billboard.verifiedStatus}
+          Status: {selected.verifiedStatus}
         </Text>
         <Text className="text-sm text-gray-600 mb-4">
-          Crowd Confidence: {billboard.crowdConfidence.toFixed(2)}%
+          Crowd Confidence: {selected.crowdConfidence.toFixed(2)}%
         </Text>
 
         {/* Reports */}
         <Text className="text-lg font-montserratBold mb-3 text-gray-800">
           Reports
         </Text>
-        {billboard.reports?.length ? (
+        {selected.reports?.length ? (
           <FlatList
-            data={billboard.reports}
+            data={selected.reports}
             keyExtractor={(item) => item._id}
             renderItem={renderReportItem}
             scrollEnabled={false}
