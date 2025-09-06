@@ -1,8 +1,13 @@
 import { getAllReports, getReportsByUser } from "@/lib/Slices/reportSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useRoute } from "@react-navigation/native";
+import {
+  useFocusEffect,
+  useIsFocused,
+  useRoute,
+} from "@react-navigation/native";
 import { useRouter } from "expo-router";
+import { AnimatePresence, MotiView } from "moti";
 import { Skeleton } from "moti/skeleton";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -14,11 +19,19 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-
 const Reports = () => {
+  const isFocused = useIsFocused();
+  const [played, setPlayed] = useState(false);
+  useEffect(() => {
+    if (isFocused) {
+      setPlayed(false);
+      requestAnimationFrame(() => setPlayed(true));
+    } else {
+      setPlayed(false);
+    }
+  }, [isFocused]);
   const STATUS_OPTIONS = [
     { label: "All Status", value: "" },
     { label: "Pending", value: "pending" },
@@ -42,7 +55,7 @@ const Reports = () => {
   const ReportSkeleton = ({ colorMode }: { colorMode: "light" | "dark" }) => {
     return (
       <View
-        className="mb-4 mx-2 rounded-2xl p-4 border"
+        className="mb-4 mt-8 mx-2 rounded-2xl p-4 border"
         style={{
           backgroundColor: colorMode === "dark" ? "#1F2937" : "#FFFFFF",
           borderColor: "#E5E7EB",
@@ -395,251 +408,313 @@ const Reports = () => {
       </View>
 
       {/* Backdrop */}
-      {menuVisible && (
-        <View
-          className="absolute right-4 top-20 w-72 rounded-2xl border px-4 py-3 z-50"
-          style={{
-            backgroundColor: "#FFFFFF", // surface
-            borderColor: "#E5E7EB", // border
-            borderWidth: 1,
-            shadowColor: "#000", // subtle neutral shadow
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
-            shadowOffset: { width: 0, height: 4 },
-          }}
-        >
-          {/* Header */}
-          <View
-            className="pb-2 border-b mb-3"
-            style={{ borderColor: "#E5E7EB" }}
-          >
-            <Text
-              className="font-montserratBold text-lg"
-              style={{ color: "#1F2937" }}
-            >
-              Filters
-            </Text>
-          </View>
-
-          {/* STATUS row */}
-          <View
-            className="mb-2 rounded-xl overflow-hidden"
+      <AnimatePresence>
+        {menuVisible && (
+          <MotiView
+            key="filters-menu"
+            from={{ opacity: 0, scale: 0.8, translateY: -10 }}
+            animate={{ opacity: 1, scale: 1, translateY: 0 }}
+            exit={{ opacity: 0, scale: 0.8, translateY: -10 }}
+            transition={{
+              type: "spring",
+              damping: 12,
+              stiffness: 200,
+            }}
+            className="absolute right-4 top-20 w-72 rounded-2xl border px-4 py-3 z-50"
             style={{
+              backgroundColor: "#FFFFFF", // surface
+              borderColor: "#E5E7EB", // border
               borderWidth: 1,
-              borderColor: "#E5E7EB",
-              backgroundColor: "#F9FAFB", // subtle background
+              shadowColor: "#000", // subtle neutral shadow
+              shadowOpacity: 0.08,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: 4 },
             }}
           >
-            <TouchableOpacity
-              className="flex-row items-center justify-between px-3 py-3"
-              onPress={() => setOpenKey(openKey === "status" ? null : "status")}
-              activeOpacity={0.8}
-            >
-              <Text className="font-montserrat" style={{ color: "#1F2937" }}>
-                {getLabel(STATUS_OPTIONS, tempFilters.status)}
-              </Text>
-              <Ionicons
-                name={openKey === "status" ? "chevron-up" : "chevron-down"}
-                size={18}
-                color="#6B7280"
-              />
-            </TouchableOpacity>
-
-            {openKey === "status" && (
-              <View style={{ backgroundColor: "#FFFFFF" }}>
-                {STATUS_OPTIONS.map((opt) => (
-                  <TouchableOpacity
-                    key={opt.value}
-                    className="px-3 py-2 flex-row items-center justify-between"
-                    onPress={() => {
-                      setTempFilters((f) => ({ ...f, status: opt.value }));
-                      setOpenKey(null);
-                    }}
-                  >
-                    <Text
-                      className="font-montserrat"
-                      style={{
-                        color:
-                          tempFilters.status === opt.value
-                            ? "#6C4FE0" // highlight active with brand purple
-                            : "#1F2937",
-                      }}
-                    >
-                      {opt.label}
-                    </Text>
-                    {tempFilters.status === opt.value && (
-                      <Ionicons name="checkmark" size={16} color="#6C4FE0" />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-
-          {/* VIOLATION TYPE row */}
-          <View
-            className="mb-2 rounded-xl overflow-hidden"
-            style={{
-              borderWidth: 1,
-              borderColor: "#E5E7EB",
-              backgroundColor: "#F9FAFB", // subtle background
-            }}
-          >
-            <TouchableOpacity
-              className="flex-row items-center justify-between px-3 py-3"
-              onPress={() =>
-                setOpenKey(openKey === "violationType" ? null : "violationType")
-              }
-              activeOpacity={0.8}
-            >
-              <Text className="font-montserrat" style={{ color: "#1F2937" }}>
-                {getLabel(VIOLATION_OPTIONS, tempFilters.violationType)}
-              </Text>
-              <Ionicons
-                name={
-                  openKey === "violationType" ? "chevron-up" : "chevron-down"
-                }
-                size={18}
-                color="#6B7280"
-              />
-            </TouchableOpacity>
-
-            {openKey === "violationType" && (
-              <View style={{ backgroundColor: "#FFFFFF" }}>
-                {VIOLATION_OPTIONS.map((opt) => (
-                  <TouchableOpacity
-                    key={opt.value}
-                    className="px-3 py-2 flex-row items-center justify-between"
-                    onPress={() => {
-                      // ✅ FIX: update violationType (not status)
-                      setTempFilters((f) => ({
-                        ...f,
-                        violationType: opt.value,
-                      }));
-                      setOpenKey(null);
-                    }}
-                  >
-                    <Text
-                      className="font-montserrat"
-                      style={{
-                        color:
-                          tempFilters.violationType === opt.value
-                            ? "#6C4FE0" // highlight active with brand purple
-                            : "#1F2937",
-                      }}
-                    >
-                      {opt.label}
-                    </Text>
-                    {tempFilters.violationType === opt.value && (
-                      <Ionicons name="checkmark" size={16} color="#6C4FE0" />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-
-          {/* VERDICT row */}
-          <View
-            className="mb-2 rounded-xl overflow-hidden"
-            style={{
-              borderWidth: 1,
-              borderColor: "#E5E7EB",
-              backgroundColor: "#F9FAFB", // subtle background
-            }}
-          >
-            <TouchableOpacity
-              className="flex-row items-center justify-between px-3 py-3"
-              onPress={() =>
-                setOpenKey(openKey === "verdict" ? null : "verdict")
-              }
-              activeOpacity={0.8}
-            >
-              <Text className="font-montserrat" style={{ color: "#1F2937" }}>
-                {getLabel(VERDICT_OPTIONS, tempFilters.verdict)}
-              </Text>
-              <Ionicons
-                name={openKey === "verdict" ? "chevron-up" : "chevron-down"}
-                size={18}
-                color="#6B7280"
-              />
-            </TouchableOpacity>
-
-            {openKey === "verdict" && (
-              <View className="bg-white/15">
-                {VERDICT_OPTIONS.map((opt) => (
-                  <TouchableOpacity
-                    key={opt.value}
-                    className="px-3 py-2 flex-row items-center justify-between"
-                    onPress={() => {
-                      // ✅ FIX: update verdict (not status)
-                      setTempFilters((f) => ({ ...f, verdict: opt.value }));
-                      setOpenKey(null);
-                    }}
-                  >
-                    <Text
-                      className="font-montserrat"
-                      style={{
-                        color:
-                          tempFilters.verdict === opt.value
-                            ? "#6C4FE0" // highlight active with brand purple
-                            : "#1F2937",
-                      }}
-                    >
-                      {opt.label}
-                    </Text>
-                    {tempFilters.verdict === opt.value && (
-                      <Ionicons name="checkmark" size={16} color="#6C4FE0" />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-
-          {/* Buttons */}
-          {/* Buttons */}
-          <View className="flex-row justify-end gap-2">
-            <TouchableOpacity
-              className="rounded-xl px-3 py-2"
-              style={{
-                borderColor: "#E5E7EB",
-                borderWidth: 1,
-                backgroundColor: "#F9FAFB",
-              }}
-              onPress={() =>
-                setTempFilters({
-                  status: "",
-                  violationType: "",
-                  verdict: "",
-                  page: 1,
-                  limit: 10,
-                })
-              }
-            >
-              <Text className="font-montserrat" style={{ color: "black" }}>
-                Reset
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="rounded-xl px-4 py-2"
-              style={{ backgroundColor: "#6C4FE0" }}
-              onPress={() => {
-                setFilters(tempFilters); // <-- triggers fetch via your useEffect
-                setMenuVisible(false);
-              }}
+            {/* Header */}
+            <View
+              className="pb-2 border-b mb-3"
+              style={{ borderColor: "#E5E7EB" }}
             >
               <Text
-                className="font-montserratBold"
-                style={{ color: "#FFFFFF" }}
+                className="font-montserratBold text-lg"
+                style={{ color: "#1F2937" }}
               >
-                Apply
+                Filters
               </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+            </View>
+
+            {/* STATUS row */}
+            <View
+              className="mb-2 rounded-xl overflow-hidden"
+              style={{
+                borderWidth: 1,
+                borderColor: "#E5E7EB",
+                backgroundColor: "#F9FAFB", // subtle background
+              }}
+            >
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-3 py-3"
+                onPress={() =>
+                  setOpenKey(openKey === "status" ? null : "status")
+                }
+                activeOpacity={0.8}
+              >
+                <Text className="font-montserrat" style={{ color: "#1F2937" }}>
+                  {getLabel(STATUS_OPTIONS, tempFilters.status)}
+                </Text>
+                <Ionicons
+                  name={openKey === "status" ? "chevron-up" : "chevron-down"}
+                  size={18}
+                  color="#6B7280"
+                />
+              </TouchableOpacity>
+
+              <AnimatePresence>
+                {openKey === "status" && (
+                  <MotiView
+                    key="status-options"
+                    from={{ opacity: 0, translateY: -8, scaleY: 0.95 }}
+                    animate={{ opacity: 1, translateY: 0, scaleY: 1 }}
+                    transition={{
+                      type: "timing",
+                      duration: 220,
+                    }}
+                    style={{
+                      overflow: "hidden", // important to clip during scaleY transform
+                      transformOrigin: "top", // harmless on RN (kept for clarity)
+                      backgroundColor: "#FFFFFF",
+                    }}
+                  >
+                    {STATUS_OPTIONS.map((opt) => (
+                      <TouchableOpacity
+                        key={opt.value}
+                        className="px-3 py-2 flex-row items-center justify-between"
+                        onPress={() => {
+                          setTempFilters((f) => ({
+                            ...f,
+                            status: opt.value,
+                          }));
+                          setOpenKey(null);
+                        }}
+                      >
+                        <Text
+                          className="font-montserrat"
+                          style={{
+                            color:
+                              tempFilters.status === opt.value
+                                ? "#6C4FE0"
+                                : "#1F2937",
+                          }}
+                        >
+                          {opt.label}
+                        </Text>
+                        {tempFilters.status === opt.value && (
+                          <Ionicons
+                            name="checkmark"
+                            size={16}
+                            color="#6C4FE0"
+                          />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </MotiView>
+                )}
+              </AnimatePresence>
+            </View>
+
+            {/* VIOLATION TYPE row */}
+            <View
+              className="mb-2 rounded-xl overflow-hidden"
+              style={{
+                borderWidth: 1,
+                borderColor: "#E5E7EB",
+                backgroundColor: "#F9FAFB", // subtle background
+              }}
+            >
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-3 py-3"
+                onPress={() =>
+                  setOpenKey(
+                    openKey === "violationType" ? null : "violationType"
+                  )
+                }
+                activeOpacity={0.8}
+              >
+                <Text className="font-montserrat" style={{ color: "#1F2937" }}>
+                  {getLabel(VIOLATION_OPTIONS, tempFilters.violationType)}
+                </Text>
+                <Ionicons
+                  name={
+                    openKey === "violationType" ? "chevron-up" : "chevron-down"
+                  }
+                  size={18}
+                  color="#6B7280"
+                />
+              </TouchableOpacity>
+              <AnimatePresence>
+                {openKey === "violationType" && (
+                  <MotiView
+                    key="violationType-options"
+                    from={{ opacity: 0, translateY: -8, scaleY: 0.95 }}
+                    animate={{ opacity: 1, translateY: 0, scaleY: 1 }}
+                    transition={{ type: "timing", duration: 220 }}
+                    style={{ overflow: "hidden", backgroundColor: "#FFFFFF" }}
+                  >
+                    {VIOLATION_OPTIONS.map((opt) => (
+                      <TouchableOpacity
+                        key={opt.value}
+                        className="px-3 py-2 flex-row items-center justify-between"
+                        onPress={() => {
+                          // ✅ FIX: update violationType (not status)
+                          setTempFilters((f) => ({
+                            ...f,
+                            violationType: opt.value,
+                          }));
+                          setOpenKey(null);
+                        }}
+                      >
+                        <Text
+                          className="font-montserrat"
+                          style={{
+                            color:
+                              tempFilters.violationType === opt.value
+                                ? "#6C4FE0" // highlight active with brand purple
+                                : "#1F2937",
+                          }}
+                        >
+                          {opt.label}
+                        </Text>
+                        {tempFilters.violationType === opt.value && (
+                          <Ionicons
+                            name="checkmark"
+                            size={16}
+                            color="#6C4FE0"
+                          />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </MotiView>
+                )}
+              </AnimatePresence>
+            </View>
+
+            {/* VERDICT row */}
+            <View
+              className="mb-2 rounded-xl overflow-hidden"
+              style={{
+                borderWidth: 1,
+                borderColor: "#E5E7EB",
+                backgroundColor: "#F9FAFB", // subtle background
+              }}
+            >
+              <TouchableOpacity
+                className="flex-row items-center justify-between px-3 py-3"
+                onPress={() =>
+                  setOpenKey(openKey === "verdict" ? null : "verdict")
+                }
+                activeOpacity={0.8}
+              >
+                <Text className="font-montserrat" style={{ color: "#1F2937" }}>
+                  {getLabel(VERDICT_OPTIONS, tempFilters.verdict)}
+                </Text>
+                <Ionicons
+                  name={openKey === "verdict" ? "chevron-up" : "chevron-down"}
+                  size={18}
+                  color="#6B7280"
+                />
+              </TouchableOpacity>
+              <AnimatePresence>
+                {openKey === "verdict" && (
+                  <MotiView
+                    key="verdict-options"
+                    from={{ opacity: 0, translateY: -8, scaleY: 0.95 }}
+                    animate={{ opacity: 1, translateY: 0, scaleY: 1 }}
+                    transition={{ type: "timing", duration: 220 }}
+                    style={{ overflow: "hidden", backgroundColor: "#FFFFFF" }}
+                  >
+                    {VERDICT_OPTIONS.map((opt) => (
+                      <TouchableOpacity
+                        key={opt.value}
+                        className="px-3 py-2 flex-row items-center justify-between"
+                        onPress={() => {
+                          // ✅ FIX: update verdict (not status)
+                          setTempFilters((f) => ({
+                            ...f,
+                            verdict: opt.value,
+                          }));
+                          setOpenKey(null);
+                        }}
+                      >
+                        <Text
+                          className="font-montserrat"
+                          style={{
+                            color:
+                              tempFilters.verdict === opt.value
+                                ? "#6C4FE0" // highlight active with brand purple
+                                : "#1F2937",
+                          }}
+                        >
+                          {opt.label}
+                        </Text>
+                        {tempFilters.verdict === opt.value && (
+                          <Ionicons
+                            name="checkmark"
+                            size={16}
+                            color="#6C4FE0"
+                          />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </MotiView>
+                )}
+              </AnimatePresence>
+            </View>
+
+            {/* Buttons */}
+            {/* Buttons */}
+            <View className="flex-row justify-end gap-2">
+              <TouchableOpacity
+                className="rounded-xl px-3 py-2"
+                style={{
+                  borderColor: "#E5E7EB",
+                  borderWidth: 1,
+                  backgroundColor: "#F9FAFB",
+                }}
+                onPress={() =>
+                  setTempFilters({
+                    status: "",
+                    violationType: "",
+                    verdict: "",
+                    page: 1,
+                    limit: 10,
+                  })
+                }
+              >
+                <Text className="font-montserrat" style={{ color: "black" }}>
+                  Reset
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="rounded-xl px-4 py-2"
+                style={{ backgroundColor: "#6C4FE0" }}
+                onPress={() => {
+                  setFilters(tempFilters); // <-- triggers fetch via your useEffect
+                  setMenuVisible(false);
+                }}
+              >
+                <Text
+                  className="font-montserratBold"
+                  style={{ color: "#FFFFFF" }}
+                >
+                  Apply
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </MotiView>
+        )}
+      </AnimatePresence>
 
       {status === "loading" ? (
         <ScrollView
@@ -673,10 +748,13 @@ const Reports = () => {
             )}
 
             {/* Report History */}
-            <Text className="my-3 text-MD font-montserratBold text-text-primary tracking-wide">
-              REPORT HISTORY
-            </Text>
-            {reports.length === 0 ? (
+            {reports.length > 0 && (
+              <Text className="my-3 text-MD font-montserratBold text-text-primary tracking-wide">
+                REPORT HISTORY
+              </Text>
+            )}
+
+            {/* {reports.length === 0 ? (
               <Text className="mt-5 text-center text-sm text-neutral-500">
                 No reports found.
               </Text>
@@ -688,7 +766,55 @@ const Reports = () => {
                 scrollEnabled={false}
                 contentContainerStyle={{}}
               />
+            )} */}
+            {reports.length === 0 ? (
+              <View
+                className="min-h-[90%]"
+                // center the empty state vertically and horizontally
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 28,
+                }}
+              >
+                {/* smaller illustration */}
+                <Image
+                  source={require("../../../assets/images/noreports.png")}
+                  style={{
+                    width: 130, // reduced size
+                    height: 100, // reduced size
+                    resizeMode: "contain",
+                    marginBottom: 14,
+                  }}
+                />
+
+                {/* Professional headline */}
+                <Text
+                  className="text-lg font-montserratBold"
+                  style={{ color: "#1F2937" }}
+                >
+                  No reports submitted yet.
+                </Text>
+
+                {/* Professional subline */}
+                <Text
+                  className="text-sm mt-1 text-center px-8 font-montserrat"
+                  style={{ color: "#6B7280", lineHeight: 20 }}
+                >
+                  Report by taking a photo and start your journey.
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={reports}
+                renderItem={renderReportItem}
+                keyExtractor={(item) => item._id}
+                scrollEnabled={false}
+                contentContainerStyle={{}}
+              />
             )}
+
             {reports.length > 0 && (
               <View className="mt-2 mb-2 px-2">
                 <View className="flex-row items-center justify-center gap-3">

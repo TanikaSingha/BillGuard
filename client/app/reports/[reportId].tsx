@@ -4,20 +4,21 @@ import {
 } from "@/lib/Slices/userSlice";
 import apiRequest from "@/lib/utils/apiRequest";
 import { AppDispatch, RootState } from "@/store/store";
-import { FontAwesome } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import LottieView from "lottie-react-native";
+import { AnimatePresence, MotiView } from "moti";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Image,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
+  useColorScheme,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,6 +27,8 @@ const ReportDetails = () => {
   const { reportId } = useLocalSearchParams();
   const router = useRouter();
   const { user } = useSelector((state: RootState) => state.user);
+  const colorScheme = useColorScheme(); // ✅ always called
+  const colorMode = colorScheme === "dark" ? "dark" : "light";
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -34,6 +37,13 @@ const ReportDetails = () => {
   const [adminNotes, setAdminNotes] = useState(report?.adminNotes || "");
   const [saving, setSaving] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
+  const STATUS_OPTIONS = [
+    { label: "Pending", value: "pending" },
+    { label: "Verified Unauthorized", value: "verified_unauthorized" },
+    { label: "Verified Authorized", value: "verified_authorized" },
+    { label: "Rejected", value: "rejected" },
+  ];
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handleAdminUpdate = async () => {
     try {
@@ -116,7 +126,12 @@ const ReportDetails = () => {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-slate-50">
-        <ActivityIndicator size="large" color="#1E90FF" />
+        <LottieView
+          source={require("../../assets/animations/loader.json")} // 👈 put your JSON path here
+          autoPlay
+          loop
+          style={{ width: 150, height: 150 }}
+        />
       </View>
     );
   }
@@ -247,7 +262,7 @@ const ReportDetails = () => {
           </View>
 
           {/* Accordion sections */}
-          <View className="bg-white p-5 rounded-2xl shadow-sm">
+          <View className="bg-white p-5 rounded-2xl shadow-sm mb-4">
             <AccordionItem title="Issue Description" defaultOpen>
               <Text className="font-montserrat text-base text-slate-800 leading-6">
                 {" "}
@@ -386,7 +401,7 @@ const ReportDetails = () => {
           </View>
 
           {user?.role === "AdminUser" && (
-            <View className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 mb-5">
+            <View className="bg-white rounded-2xl p-5 mb-4 border border-border">
               <Text className="font-montserratBold text-lg text-slate-900 mb-4">
                 Admin Actions
               </Text>
@@ -395,31 +410,75 @@ const ReportDetails = () => {
               <Text className="text-slate-700 font-montserrat mb-2">
                 Change Status
               </Text>
-              <View className="border border-slate-300 rounded-xl mb-4 overflow-hidden bg-white">
-                <Picker
-                  selectedValue={status}
-                  onValueChange={(val) => setStatus(val)}
-                  dropdownIconColor="#475569" // change arrow color on Android
-                  style={{
-                    color: "#1e293b", // text color
-                    fontFamily: "Montserrat_400Regular",
-                    fontSize: 16,
-                    paddingHorizontal: 12,
-                    paddingVertical: 10,
-                    backgroundColor: "bg-primary-light",
-                  }}
-                >
-                  <Picker.Item label="Pending" value="pending" />
-                  <Picker.Item
-                    label="Verified Unauthorized"
-                    value="verified_unauthorized"
-                  />
-                  <Picker.Item
-                    label="Verified Authorized"
-                    value="verified_authorized"
-                  />
-                  <Picker.Item label="Rejected" value="rejected" />
-                </Picker>
+              <View className="mb-4">
+                <View>
+                  {/* Dropdown control (unchanged logic) */}
+                  <TouchableOpacity
+                    onPress={() => setDropdownOpen((v) => !v)}
+                    activeOpacity={0.85}
+                    className="border border-slate-300 rounded-xl px-3 py-2 bg-white flex-row items-center justify-between"
+                  >
+                    <Text className="text-slate-900 font-montserrat text-base">
+                      {STATUS_OPTIONS.find((o) => o.value === status)?.label ??
+                        "Select status"}
+                    </Text>
+                    <FontAwesome
+                      name={dropdownOpen ? "chevron-up" : "chevron-down"}
+                      size={14}
+                      color="#475569"
+                    />
+                  </TouchableOpacity>
+
+                  {/* Inline dropdown list: part of normal layout so it pushes content down */}
+                  <AnimatePresence>
+                    {dropdownOpen && (
+                      <MotiView
+                        key="inline-dropdown"
+                        from={{ opacity: 0, translateY: -8, scale: 0.985 }}
+                        animate={{ opacity: 1, translateY: 0, scale: 1 }}
+                        transition={{ type: "timing", duration: 220 }}
+                        className="mt-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+                        style={{ willChange: "transform, opacity" }}
+                      >
+                        <ScrollView className="max-h-52">
+                          {STATUS_OPTIONS.map((opt) => {
+                            const active = opt.value === status;
+                            return (
+                              <TouchableOpacity
+                                key={opt.value}
+                                onPress={() => {
+                                  setStatus(opt.value);
+                                  setDropdownOpen(false);
+                                }}
+                                activeOpacity={0.85}
+                                className="flex-row items-center justify-between px-3 py-3"
+                              >
+                                <Text
+                                  className="font-montserrat text-base"
+                                  style={{
+                                    color: active ? "#6C4FE0" : "#1F2937",
+                                  }}
+                                >
+                                  {opt.label}
+                                </Text>
+
+                                {active ? (
+                                  <Ionicons
+                                    name="checkmark"
+                                    size={18}
+                                    color="#6C4FE0"
+                                  />
+                                ) : (
+                                  <View style={{ width: 18 }} />
+                                )}
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </ScrollView>
+                      </MotiView>
+                    )}
+                  </AnimatePresence>
+                </View>
               </View>
 
               {/* Admin Notes */}
@@ -441,7 +500,7 @@ const ReportDetails = () => {
                 disabled={saving}
                 className="bg-primary-dark px-5 py-3 rounded-2xl shadow-sm active:opacity-90"
               >
-                <Text className="text-white font-semibold text-center text-base">
+                <Text className="text-white text-center text-base font-montserrat">
                   {saving ? "Saving..." : "Save Changes"}
                 </Text>
               </TouchableOpacity>
@@ -466,6 +525,7 @@ const AccordionItem = ({
   defaultOpen?: boolean;
 }) => {
   const [open, setOpen] = useState(defaultOpen);
+
   return (
     <View className="mb-3">
       <TouchableOpacity
@@ -483,11 +543,20 @@ const AccordionItem = ({
           style={{ transform: [{ rotate: open ? "180deg" : "0deg" }] }}
         />
       </TouchableOpacity>
-      {open && (
-        <View className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-          {children}
-        </View>
-      )}
+
+      <AnimatePresence>
+        {open && (
+          <MotiView
+            from={{ opacity: 0, translateY: -6 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: "timing", duration: 200 }}
+          >
+            <View className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              {children}
+            </View>
+          </MotiView>
+        )}
+      </AnimatePresence>
     </View>
   );
 };

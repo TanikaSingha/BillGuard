@@ -1,6 +1,7 @@
 import { getBillBoardFeed } from "@/lib/Slices/billBoardSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
@@ -25,6 +26,7 @@ import { useDispatch, useSelector } from "react-redux";
 const { width } = Dimensions.get("window");
 
 export default function Index() {
+  const isFocused = useIsFocused();
   const [fontsLoaded] = useFonts({
     Montserrat: require("../../assets/fonts/Montserrat-Regular.ttf"),
     "Montserrat-Bold": require("../../assets/fonts/Montserrat-Bold.ttf"),
