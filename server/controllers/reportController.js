@@ -8,6 +8,8 @@ const NormalUser = require("../models/rolesSchema").NormalUser;
 const { default: axios } = require("axios");
 const checkAndAwardBadges = require("../utils/awardBadges");
 const calculateXP = require("../utils/calculateXP");
+const { handleBillboardCreation } = require("../utils/billBoardCreation");
+const Billboard = require("../models/billboardSchema");
 
 // Admin can get all reports
 const getAllReports = async (req, res) => {
@@ -77,7 +79,6 @@ const getAllReports = async (req, res) => {
   });
 };
 const createReport = async (req, res) => {
-  console.log("Called createReport");
   const { id, role } = req.user;
   const {
     issueDescription,
@@ -151,7 +152,8 @@ const createReport = async (req, res) => {
 
   const report = await Report.create(sanitizedReport);
   await NormalUser.findByIdAndUpdate(id, { $inc: { reportsSubmitted: 1 } });
-  console.log("Report created:", report);
+  const billboard = await handleBillboardCreation(report);
+  console.log("Billboard linked/created:", billboard);
 
   return res.status(StatusCodes.CREATED).json({
     data: report,
@@ -162,7 +164,9 @@ const createReport = async (req, res) => {
 const updateReport = async (req, res) => {
   const { id, role } = req.user;
   const { reportId } = req.params;
+  const fields = { ...req.body };
 
+  // Fetch report and linked user
   let report = await Report.findById(reportId).populate("reportedBy");
   if (!report) {
     return res.status(StatusCodes.NOT_FOUND).json({
@@ -170,16 +174,26 @@ const updateReport = async (req, res) => {
     });
   }
 
+  // Permission check
   if (report.reportedBy._id.toString() !== id && role !== "AdminUser") {
     return res.status(StatusCodes.FORBIDDEN).json({
       message: "You do not have permission to update this report.",
     });
   }
 
-  const fields = { ...req.body };
   const oldStatus = report.status;
 
-  // Admin-specific logic
+  // Fetch linked billboard
+  const billboard = await Billboard.findOne({ reports: report._id }).populate(
+    "reports"
+  );
+  if (!billboard) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      message: "Linked billboard not found for this report.",
+    });
+  }
+
+  // Admin-specific logic: verification
   if (
     role === "AdminUser" &&
     fields.status &&
@@ -188,70 +202,98 @@ const updateReport = async (req, res) => {
   ) {
     fields.reviewedBy = id;
     fields.reviewedAt = new Date();
+    if (fields.adminNotes) fields.adminNotes = fields.adminNotes.trim();
 
-    if (fields.adminNotes) {
-      fields.adminNotes = fields.adminNotes.trim();
+    // Update all reports linked to this billboard
+    await Report.updateMany(
+      { _id: { $in: billboard.reports } },
+      {
+        $set: {
+          status: fields.status,
+          reviewedBy: id,
+          reviewedAt: new Date(),
+          adminNotes: fields.adminNotes || "",
+        },
+      }
+    );
+
+    // Award XP for all users linked to these reports
+    const reportsSorted = await Report.find({
+      _id: { $in: billboard.reports },
+    }).sort({ submittedAt: 1 });
+    for (let i = 0; i < reportsSorted.length; i++) {
+      const rDoc = reportsSorted[i];
+      if (!rDoc) continue;
+      let multiplier = 0.3;
+      if (i === 0) multiplier = 1.0;
+      else if (i === 1) multiplier = 0.7;
+      else if (i === 2) multiplier = 0.5;
+
+      const baseXP = ["verified_unauthorized", "verified_authorized"].includes(
+        fields.status
+      )
+        ? calculateXP(rDoc)
+        : 0;
+      const newXP = Math.round(baseXP * multiplier);
+
+      const xpDiff = newXP - (rDoc.xpAwarded || 0);
+      if (xpDiff !== 0) {
+        await NormalUser.findByIdAndUpdate(rDoc.reportedBy, {
+          $inc: { xp: xpDiff },
+        });
+        rDoc.xpAwarded = newXP;
+        await rDoc.save();
+        await checkAndAwardBadges(rDoc.reportedBy, { report: rDoc });
+      }
+    }
+
+    // Update billboard verification status
+    billboard.verifiedStatus = fields.status;
+    billboard.verifiedBy = id;
+    billboard.verifiedAt = new Date();
+    await billboard.save();
+
+    // Update crowd confidence
+    const totalReports = billboard.reports.length;
+    const verifiedReports = await Report.countDocuments({
+      _id: { $in: billboard.reports },
+      status: { $in: ["verified_unauthorized", "verified_authorized"] },
+    });
+    billboard.crowdConfidence = Math.round(
+      (verifiedReports / totalReports) * 100
+    );
+    await billboard.save();
+
+    // Update admin stats
+    if (
+      fields.status === "verified_unauthorized" ||
+      fields.status === "verified_authorized"
+    ) {
+      await AdminUser.findByIdAndUpdate(id, { $inc: { verifiedReports: 1 } });
+      for (const rId of billboard.reports) {
+        const rDoc = await Report.findById(rId);
+        if (rDoc)
+          await NormalUser.findByIdAndUpdate(rDoc.reportedBy, {
+            $inc: { reportsVerified: 1 },
+          });
+      }
+    } else if (fields.status === "rejected") {
+      await AdminUser.findByIdAndUpdate(id, { $inc: { rejectedReports: 1 } });
     }
   }
 
+  // Regular report update for user/admin (non-status fields)
   report = await Report.findByIdAndUpdate(
     reportId,
     { $set: fields },
     { new: true, runValidators: true }
   ).populate("reportedBy reviewedBy");
 
-  if (role === "AdminUser" && oldStatus !== report.status) {
-    let newXP = 0;
-
-    if (
-      report.status === "verified_unauthorized" ||
-      report.status === "verified_authorized"
-    ) {
-      newXP = calculateXP(report);
-    }
-
-    const xpDiff = newXP - (report.xpAwarded || 0);
-
-    if (xpDiff !== 0) {
-      const user = await NormalUser.findByIdAndUpdate(
-        report.reportedBy._id,
-        { $inc: { xp: xpDiff } },
-        { new: true }
-      );
-
-      report.xpAwarded = newXP;
-      await checkAndAwardBadges(report.reportedBy._id, { report });
-      await report.save();
-
-      const topUsers = await NormalUser.find({})
-        .sort({ xp: -1 })
-        .limit(5)
-        .select("_id xp leaderBoardPosition");
-
-      for (let i = 0; i < topUsers.length; i++) {
-        topUsers[i].leaderBoardPosition = i + 1;
-        await topUsers[i].save();
-      }
-    }
-
-    // Admin verification stats
-    if (report.reviewedBy) {
-      if (
-        report.status === "verified_unauthorized" ||
-        report.status === "verified_authorized"
-      ) {
-        await AdminUser.findByIdAndUpdate(report.reviewedBy, {
-          $inc: { verifiedReports: 1 },
-        });
-        await NormalUser.findByIdAndUpdate(report.reportedBy._id, {
-          $inc: { reportsVerified: 1 },
-        });
-      } else if (report.status === "rejected") {
-        await AdminUser.findByIdAndUpdate(report.reviewedBy, {
-          $inc: { rejectedReports: 1 },
-        });
-      }
-    }
+  // Update leaderboard positions
+  const topUsers = await NormalUser.find({}).sort({ xp: -1 }).limit(5);
+  for (let i = 0; i < topUsers.length; i++) {
+    topUsers[i].leaderBoardPosition = i + 1;
+    await topUsers[i].save();
   }
 
   return res.status(StatusCodes.OK).json({
@@ -348,10 +390,54 @@ const getReportById = async (req, res) => {
   });
 };
 
+const voteReport = async (req, res) => {
+  const { reportId } = req.params;
+  const { voteType } = req.body; // 'upvote' or 'downvote'
+  const userId = req.user._id;
+
+  const report = await Report.findById(reportId).populate("billboard");
+  if (!report) return res.status(404).json({ message: "Report not found" });
+
+  // Remove user from both arrays first
+  report.upvotes = report.upvotes.filter(
+    (u) => u.toString() !== userId.toString()
+  );
+  report.downvotes = report.downvotes.filter(
+    (u) => u.toString() !== userId.toString()
+  );
+
+  // Add to appropriate array
+  if (voteType === "upvote") report.upvotes.push(userId);
+  else if (voteType === "downvote") report.downvotes.push(userId);
+
+  // Recalculate report confidence
+  const totalVotes = report.upvotes.length + report.downvotes.length;
+  const score = totalVotes ? (report.upvotes.length / totalVotes) * 100 : 0;
+  report.aiAnalysis.confidence = score;
+
+  await report.save();
+
+  // Recalculate billboard crowd confidence
+  const allReports = await Report.find({ billboard: report.billboard._id });
+  const billboardConfidence =
+    allReports.reduce((sum, r) => sum + r.aiAnalysis.confidence, 0) /
+    allReports.length;
+
+  report.billboard.crowdConfidence = billboardConfidence;
+  await report.billboard.save();
+
+  return res.status(200).json({
+    message: "Vote recorded",
+    reportConfidence: report.aiAnalysis.confidence,
+    billboardConfidence: billboardConfidence,
+  });
+};
+
 module.exports = {
   getAllReports,
   createReport,
   getReportsByUser,
   getReportById,
   updateReport,
+  voteReport,
 };

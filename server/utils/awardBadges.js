@@ -10,8 +10,8 @@ const checkAndAwardBadges = async (userId, action = {}) => {
   const zonesReported = await Report.distinct("location.zoneId", {
     reportedBy: userId,
   });
-  const commentsCount = user.commentsMade || 0; // track if you store this
-  const overriddenCount = user.aiOverridesCorrect || 0; // track if you store this
+  const commentsCount = user.commentsMade || 0; 
+  const overriddenCount = user.aiOverridesCorrect || 0; 
 
   const badgesToAward = [];
 
