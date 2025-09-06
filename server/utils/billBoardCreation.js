@@ -36,15 +36,34 @@ const handleBillboardCreation = async (reportData) => {
       await checkAndAwardBadges(reportData.reportedBy, { report: reportData });
       await reportData.save();
 
-      // Update crowd confidence
-      const totalReports = billboard.reports.length;
-      const verifiedReports = await Report.countDocuments({
-        _id: { $in: billboard.reports },
-        status: { $in: ["verified_unauthorized", "verified_authorized"] },
+      const allReports = await Report.find({ _id: { $in: billboard.reports } });
+
+      let totalWeighted = 0;
+      let totalWeight = 0;
+
+      allReports.forEach((r) => {
+        let baseConf = r.aiAnalysis?.confidence ?? 50;
+
+        // Verification bonus
+        if (
+          ["verified_unauthorized", "verified_authorized"].includes(r.status)
+        ) {
+          baseConf = Math.min(100, baseConf + 30);
+        }
+
+        // Community trust influence
+        const trustScore = Math.max(0, r.communityTrustScore ?? 0);
+        const trustWeight = Math.min(trustScore / 10, 1); // cap at 1 (strong trust = full weight)
+
+        // Weight = 1 (default) + trustWeight
+        const weight = 1 + trustWeight;
+
+        totalWeighted += baseConf * weight;
+        totalWeight += weight;
       });
-      billboard.crowdConfidence = Math.round(
-        (verifiedReports / totalReports) * 100
-      );
+
+      billboard.crowdConfidence =
+        totalWeight > 0 ? Math.round(totalWeighted / totalWeight) : 0;
 
       await billboard.save();
     } else {

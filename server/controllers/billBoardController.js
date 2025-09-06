@@ -67,12 +67,13 @@ const getBillBoardDetails = async (req, res) => {
   const billboard = await Billboard.findById(billboardId).populate({
     path: "reports",
     select:
-      "reportedBy submittedAt status xpAwarded upvotes downvotes aiAnalysis imageURL annotatedImageURL",
+      "reportedBy submittedAt status xpAwarded upvotes downvotes aiAnalysis imageURL annotatedImageURL communityTrustScore",
     populate: {
       path: "reportedBy",
       select: "username email",
     },
   });
+  // SORT BY COMMUNITY TRUST SCORE DESCENDING
 
   if (!billboard) {
     return res.status(StatusCodes.NOT_FOUND).json({
