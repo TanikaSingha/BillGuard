@@ -1,9 +1,12 @@
-import { RootState } from "@/store/store";
+import { getBillBoardFeed } from "@/lib/Slices/billBoardSlice";
+import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import React from "react";
+import { useRouter } from "expo-router";
+import React, { useEffect } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
@@ -18,7 +21,7 @@ import Carousel, {
   Pagination,
 } from "react-native-reanimated-carousel";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const { width } = Dimensions.get("window");
 
@@ -30,6 +33,7 @@ export default function Index() {
   });
   const { user } = useSelector((state: RootState) => state.user);
   const { location } = useSelector((state: RootState) => state.location);
+
   const steps = [
     {
       title: "Document Evidence",
@@ -50,46 +54,11 @@ export default function Index() {
         "https://images.unsplash.com/photo-1588170975164-67f7a6127d91?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHNhZmUlMjBjaXR5JTIwY29ubmVjdGlvbnxlbnwwfDB8MHx8fDI%3D",
     },
   ];
-  const reports = [
-    {
-      id: "1",
-      title: "Vulgar content",
-      icon: "alert-circle", // warning icon
-      location: "Park Street, Kolkata",
-      distance: "0.3 km",
-    },
-    {
-      id: "2",
-      title: "Blocking road view",
-      icon: "eye-off", // blocked visibility
-      location: "Esplanade, Kolkata",
-      distance: "0.8 km",
-    },
-    {
-      id: "3",
-      title: "Billboard stand broken",
-      icon: "construct", // tools / broken
-      location: "Salt Lake, Kolkata",
-      distance: "1.2 km",
-    },
-    {
-      id: "4",
-      title: "Unauthorized billboard",
-      icon: "ban", // prohibition
-      location: "Gariahat, Kolkata",
-      distance: "2.1 km",
-    },
-    {
-      id: "5",
-      title: "Lights not working",
-      icon: "bulb", // bulb/light
-      location: "New Town, Kolkata",
-      distance: "3.4 km",
-    },
-  ];
 
   const progress = useSharedValue<number>(0);
   const ref = React.useRef<ICarouselInstance>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
 
   const onPressPagination = (index: number) => {
     ref.current?.scrollTo({
@@ -97,6 +66,18 @@ export default function Index() {
       animated: true,
     });
   };
+
+  const { status, error, billboards } = useSelector(
+    (state: RootState) => state.billboard
+  );
+
+  useEffect(() => {
+    dispatch(getBillBoardFeed())
+      .unwrap()
+      .catch((err) => {
+        console.error("Error fetching billboards:", err);
+      });
+  }, [dispatch]);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -107,7 +88,6 @@ export default function Index() {
             Hello, {user?.name.split(" ")[0]}!
           </Text>
           <TouchableOpacity className="flex-row items-center mt-1">
-            {/* remove this later */}
             <Text className="text-md mr-1 text-text-secondary font-montserrat">
               Kolkata
             </Text>
@@ -136,15 +116,10 @@ export default function Index() {
                 className="w-full h-full rounded-2xl overflow-hidden border border-2 border-border "
                 resizeMode="cover"
               >
-                {/* Overlay to make text readable */}
                 <View className="absolute inset-0 bg-black/60" />
-
-                {/* Top-right number */}
                 <Text className="absolute top-3 right-3 text-white text-5xl font-montserratBold">
                   {index + 1}
                 </Text>
-
-                {/* Bottom content */}
                 <View className="absolute bottom-4 left-4 right-4">
                   <Text className="text-white text-xl font-montserratBold">
                     {item.title}
@@ -157,7 +132,6 @@ export default function Index() {
             </View>
           )}
         />
-        {/* Pagination */}
         <Pagination.Custom
           progress={progress}
           data={steps}
@@ -170,7 +144,7 @@ export default function Index() {
             borderRadius: 8,
             width: 30,
             height: 10,
-            backgroundColor: "#6C4FE0", // purple
+            backgroundColor: "#6C4FE0",
           }}
           containerStyle={{
             gap: 6,
@@ -196,39 +170,76 @@ export default function Index() {
         />
       </View>
 
-      {/* Recent Reports Section */}
+      {/* Billboards Section */}
       <View className="px-6 flex-1 mb-10">
         <Text className="text-xl font-montserratBold mb-3 text-text-primary">
-          Reports By Others
+          Nearby Billboard Reports
         </Text>
-        <FlatList
-          data={reports}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View className="border border-2 border-border flex-row justify-between items-center bg-surface rounded-xl px-3 py-3 mb-4 mx-2 shadow-md shadow-primary-main">
-              <View className="flex-row items-center">
-                <Ionicons
-                  name={item.icon as any}
-                  size={22}
-                  color={"#6C4FE0"}
-                  style={{ marginRight: 10 }}
-                />
-                <View>
+
+        {status === "loading" && (
+          <ActivityIndicator size="large" color="#6C4FE0" className="mt-5" />
+        )}
+
+        {status === "failed" && (
+          <Text className="text-red-500 font-montserrat text-center mt-5">
+            {error ? String(error) : "Failed to load billboards."}
+          </Text>
+        )}
+
+        {status === "succeeded" && billboards?.length > 0 && (
+          <FlatList
+            data={billboards.slice(0, 5)} // limit to 5
+            showsVerticalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View className="border border-2 border-border flex-row justify-between items-center bg-surface rounded-xl px-3 py-3 mb-4 mx-2 shadow-md shadow-primary-main">
+                <View className="flex-1 mr-3">
                   <Text className="font-montserratBold text-text-primary">
-                    {item.title}
+                    Billboard #{item.id.slice(-6)} {/* shorter id */}
                   </Text>
                   <Text className="font-montserrat text-text-secondary text-sm">
-                    {item.location}
+                    {item.location?.address || "Unknown Location"}
+                  </Text>
+                  <Text className="font-montserrat text-text-secondary text-xs mt-1">
+                    Confidence:{" "}
+                    <Text className="text-primary-main font-montserratBold">
+                      {item.crowdConfidence
+                        ? `${item.crowdConfidence}%`
+                        : "N/A"}
+                    </Text>
                   </Text>
                 </View>
+
+                <Image
+                  source={{
+                    uri:
+                      item.imageURL ||
+                      "https://via.placeholder.com/150?text=No+Image",
+                  }}
+                  className="w-16 h-16 rounded-lg border border-border"
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    router.push({
+                      pathname: "/billboards/[billboardId]",
+                      params: { billboardId: item.id },
+                    });
+                  }}
+                >
+                  <Text className="text-primary-main font-montserratBold">
+                    View Details
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <Text className="font-montserrat text-text-primary text-sm">
-                {item.distance}
-              </Text>
-            </View>
-          )}
-        />
+            )}
+          />
+        )}
+
+        {status === "succeeded" && billboards?.length === 0 && (
+          <Text className="text-text-secondary text-center font-montserrat mt-5">
+            No billboard reports available.
+          </Text>
+        )}
       </View>
     </SafeAreaView>
   );

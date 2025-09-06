@@ -1,4 +1,4 @@
-function calculateBillboardDimensions(exifData, distanceMeters = 10) {
+function calculateBillboardDimensions(exifData, distanceMeters) {
   if (distanceMeters <= 0) {
     throw new Error("Invalid distance to billboard");
   }
