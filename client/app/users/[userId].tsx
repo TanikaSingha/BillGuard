@@ -222,17 +222,16 @@ const UserDetails = () => {
         <Text className="font-montserratBold text-lg text-primary-main mb-2">
           Badges
         </Text>
-
         {userInfo.badges?.length > 0 ? (
           <View className="flex-row flex-wrap">
-            {userInfo.badges.map((badge: string, idx: number) => (
+            {userInfo.badges.map((badge: any, idx: number) => (
               <View
-                key={idx}
+                key={badge._id || idx}
                 className="flex-row items-center bg-primary-main px-3 py-1.5 rounded-full mr-2 mb-2"
               >
                 <FontAwesome name="trophy" size={14} color="#FFFFFF" />
                 <Text className="font-montserratBold text-white text-xs ml-2">
-                  {badge}
+                  {badge.name} {/* <-- instead of whole object */}
                 </Text>
               </View>
             ))}
