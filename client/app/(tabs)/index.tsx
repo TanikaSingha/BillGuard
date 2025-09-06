@@ -172,7 +172,7 @@ export default function Index() {
 
       {/* Billboards Section */}
       <View className="px-6 flex-1 mb-10">
-        <Text className="text-xl font-montserratBold mb-3 text-text-primary">
+        <Text className="text-xl font-montserratBold mb-3 text-text-primary mx-2">
           Nearby Billboard Reports
         </Text>
 
@@ -192,44 +192,130 @@ export default function Index() {
             showsVerticalScrollIndicator={false}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <View className="border border-2 border-border flex-row justify-between items-center bg-surface rounded-xl px-3 py-3 mb-4 mx-2 shadow-md shadow-primary-main">
-                <View className="flex-1 mr-3">
-                  <Text className="font-montserratBold text-text-primary">
-                    Billboard #{item.id.slice(-6)} {/* shorter id */}
-                  </Text>
-                  <Text className="font-montserrat text-text-secondary text-sm">
-                    {item.location?.address || "Unknown Location"}
-                  </Text>
-                  <Text className="font-montserrat text-text-secondary text-xs mt-1">
-                    Confidence:{" "}
-                    <Text className="text-primary-main font-montserratBold">
-                      {item.crowdConfidence
-                        ? `${item.crowdConfidence}%`
-                        : "N/A"}
-                    </Text>
-                  </Text>
-                </View>
+              // <View className="border border-2 border-border flex-row justify-between items-center bg-surface rounded-xl px-3 py-3 mb-4 mx-2 shadow-md shadow-primary-main">
+              //   <View className="flex-1 mr-3">
+              //     <Text className="font-montserratBold text-text-primary">
+              //       Billboard #{item.id.slice(-6)} {/* shorter id */}
+              //     </Text>
+              //     <Text className="font-montserrat text-text-secondary text-sm">
+              //       {item.location?.address || "Unknown Location"}
+              //     </Text>
+              //     <Text className="font-montserrat text-text-secondary text-xs mt-1">
+              //       Confidence:{" "}
+              //       <Text className="text-primary-main font-montserratBold">
+              //         {item.crowdConfidence
+              //           ? `${item.crowdConfidence}%`
+              //           : "N/A"}
+              //       </Text>
+              //     </Text>
+              //   </View>
 
-                <Image
-                  source={{
-                    uri:
-                      item.imageURL ||
-                      "https://via.placeholder.com/150?text=No+Image",
-                  }}
-                  className="w-16 h-16 rounded-lg border border-border"
-                />
-                <TouchableOpacity
-                  onPress={() => {
-                    router.push({
-                      pathname: "/billboards/[billboardId]",
-                      params: { billboardId: item.id },
-                    });
+              //   <Image
+              //     source={{
+              //       uri:
+              //         item.imageURL ||
+              //         "https://via.placeholder.com/150?text=No+Image",
+              //     }}
+              //     className="w-16 h-16 rounded-lg border border-border"
+              //   />
+              //   <TouchableOpacity
+              //     onPress={() => {
+              //       router.push({
+              //         pathname: "/billboards/[billboardId]",
+              //         params: { billboardId: item.id },
+              //       });
+              //     }}
+              //   >
+              //     <Text className="text-primary-main font-montserratBold">
+              //       View Details
+              //     </Text>
+              //   </TouchableOpacity>
+              // </View>
+              <View className="mb-4 mx-2">
+                <View
+                  className="flex-row bg-white rounded-xl border border-border overflow-hidden"
+                  style={{
+                    shadowColor: "#1A1D23",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.06,
+                    shadowRadius: 16,
+                    elevation: 4,
                   }}
                 >
-                  <Text className="text-primary-main font-montserratBold">
-                    View Details
-                  </Text>
-                </TouchableOpacity>
+                  {/* LEFT: Billboard image spanning vertically */}
+                  <Image
+                    source={{
+                      uri:
+                        item.imageURL ||
+                        "https://via.placeholder.com/200?text=No+Image",
+                    }}
+                    className="w-32"
+                    style={{ height: "100%", resizeMode: "cover" }}
+                    accessibilityLabel={`Image for billboard ${item.id.slice(-6)}`}
+                  />
+
+                  {/* RIGHT: Text + Button */}
+                  <View className="flex-1 px-4 py-3 justify-between">
+                    <View>
+                      {/* Title */}
+                      <Text
+                        className="text-base font-montserratBold mb-1"
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        style={{ color: "#333333" }}
+                      >
+                        Billboard #{item.id.slice(-6)}
+                      </Text>
+
+                      {/* Confidence */}
+                      <Text
+                        className="text-sm font-montserratBold mb-1"
+                        style={{ color: "#4C1D95" }}
+                      >
+                        {item.location?.address
+                          ? item.location.address
+                              .split(",")
+                              .slice(0, 2)
+                              .join(",")
+                          : "Unknown Location"}
+                      </Text>
+
+                      {/* Location */}
+                      <Text className="text-xs font-montserrat text-text-secondary">
+                        {item.crowdConfidence != null
+                          ? `${item.crowdConfidence}% confidence`
+                          : "Confidence: N/A"}
+                      </Text>
+                    </View>
+
+                    {/* Button at bottom right */}
+                    {/* Bottom row with button on right */}
+                    <View className="flex-row items-center justify-between mt-3">
+                      {/* (Optional) If you want to show something else on left later, keep a View here */}
+                      <View />
+
+                      <TouchableOpacity
+                        onPress={() =>
+                          router.push({
+                            pathname: "/billboards/[billboardId]",
+                            params: { billboardId: item.id },
+                          })
+                        }
+                        activeOpacity={0.8}
+                        className="flex-row items-center"
+                      >
+                        <Text className="font-montserratBold text-[#6C4FE0] text-sm mr-2">
+                          See Details
+                        </Text>
+                        <Ionicons
+                          name="arrow-forward-circle-outline"
+                          size={20}
+                          color="#6C4FE0"
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
               </View>
             )}
           />

@@ -794,7 +794,7 @@ const Reports = () => {
                   className="text-lg font-montserratBold"
                   style={{ color: "#1F2937" }}
                 >
-                  No reports submitted yet.
+                  No reports found.
                 </Text>
 
                 {/* Professional subline */}
@@ -802,7 +802,7 @@ const Reports = () => {
                   className="text-sm mt-1 text-center px-8 font-montserrat"
                   style={{ color: "#6B7280", lineHeight: 20 }}
                 >
-                  Report by taking a photo and start your journey.
+                  Report by taking a photo and earn more points.
                 </Text>
               </View>
             ) : (
