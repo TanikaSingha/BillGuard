@@ -40,7 +40,9 @@ export default function Camera() {
   const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const { status, error } = useSelector((state: RootState) => state.user);
+  const { status, error } = useSelector(
+    (state: RootState) => state.user as { status: string; error?: string }
+  );
 
   // Unlock orientation while camera is open
   useEffect(() => {
@@ -161,35 +163,6 @@ export default function Camera() {
       Alert.alert("Upload Failed", err?.message || "Something went wrong");
     }
   };
-
-  // const submitPhoto = async () => {
-  //   /*
-  // if (!image) return;
-  // const formData = new FormData();
-  // formData.append("image", {
-  //   uri: image,
-  //   name: `photo${Date.now()}.jpg`,
-  //   type: "image/jpeg",
-  // } as any);
-
-  // try {
-  //   const url = await dispatch(uploadUserImage(formData)).unwrap();
-  //   setUploadedImageURL(url);
-  //   setUploadSuccess(true);
-  // } catch (err: any) {
-  //   Alert.alert("Upload Failed", err);
-  // }
-  // */
-
-  //   const fakeImage = require("@/assets/images/fake-billboard.jpg"); // adjust path if needed
-  //   const fakeUri = Image.resolveAssetSource(fakeImage).uri;
-
-  //   router.push(
-  //     `/ReportSubmission?imageUrl=${encodeURIComponent(fakeUri)}&fake=1`
-  //   );
-  // };
-
-  // ✅ Success screen
 
   if (uploadSuccess) {
     return (

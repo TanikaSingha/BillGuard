@@ -28,8 +28,7 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useDispatch, useSelector } from "react-redux";
-
-const verdictOptions = ["unauthorized", "authorized", "unsure"] as const;
+import MapPicker from "./components/MapPicker";
 
 export default function ReportSubmissionDemo() {
   const router = useRouter();
@@ -50,14 +49,18 @@ export default function ReportSubmissionDemo() {
     userOverrideVerdict,
     submitting,
   } = useSelector((s: RootState) => s.report);
-
   const [loadingAi, setLoadingAi] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<any | null>(null);
+  const [coords, setCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>({
+    latitude: location?.coords.latitude || 0,
+    longitude: location?.coords.longitude || 0,
+  });
 
-  // --- actions ---
-
-  // real ai calling
+  const hasExifGPS = exifData?.GPSLatitude && exifData?.GPSLongitude;
 
   const handleAiAnalysis = async () => {
     try {
@@ -99,8 +102,8 @@ export default function ReportSubmissionDemo() {
           ? {
               type: "Point",
               coordinates: [
-                location.coords.longitude,
-                location.coords.latitude,
+                coords?.longitude || location.coords.longitude,
+                coords?.latitude || location.coords.latitude,
               ],
             }
           : null,
@@ -188,6 +191,12 @@ export default function ReportSubmissionDemo() {
             </View>
           ) : null}
 
+          {!hasExifGPS && (
+            <MapPicker
+              initialLocation={coords ? { coords } : undefined}
+              onLocationSelect={setCoords as any}
+            />
+          )}
           {/* Distance Input + helper + Run AI (only BEFORE verdict) */}
           {!verdict && (
             <>
