@@ -14,9 +14,9 @@ import { useFonts } from "expo-font";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useSearchParams } from "expo-router/build/hooks";
+import LottieView from "lottie-react-native";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Image,
   SafeAreaView,
@@ -222,11 +222,27 @@ export default function ReportSubmissionDemo() {
                 disabled={loadingAi}
                 activeOpacity={0.8}
                 className={`mt-3 py-3 rounded-full items-center justify-center ${
-                  loadingAi ? "bg-indigo-400" : "bg-indigo-600"
+                  loadingAi ? "bg-primary-main" : "bg-primary-light"
                 }`}
               >
                 {loadingAi ? (
-                  <ActivityIndicator color="#fff" />
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <LottieView
+                      source={require("../assets/animations/loader.json")}
+                      autoPlay
+                      loop
+                      style={{ width: 40, height: 40 }}
+                      // Optionally control speed:
+                      // speed={1.2}
+                    />
+                  </View>
                 ) : (
                   <Text className="text-white text-base tracking-wide font-montserratBold">
                     Run AI Analysis
