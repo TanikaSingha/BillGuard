@@ -172,7 +172,7 @@ export default function Index() {
 
       {/* Billboards Section */}
       <View className="px-6 flex-1 mb-10">
-        <Text className="text-xl font-montserratBold mb-3 text-text-primary">
+        <Text className="text-xl font-montserratBold mb-3 text-text-primary mx-2">
           Nearby Billboard Reports
         </Text>
 
@@ -190,9 +190,10 @@ export default function Index() {
           <FlatList
             data={billboards.slice(0, 5)} // limit to 5
             showsVerticalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id} // fix: use _id from Mongo
             renderItem={({ item }) => (
               <View className="border border-2 border-border flex-row justify-between items-center bg-surface rounded-xl px-3 py-3 mb-4 mx-2 shadow-md shadow-primary-main">
+                {/* Left section */}
                 <View className="flex-1 mr-3">
                   <Text className="font-montserratBold text-text-primary">
                     Billboard #{item.id.slice(-6)} {/* shorter id */}
@@ -204,33 +205,36 @@ export default function Index() {
                     Confidence:{" "}
                     <Text className="text-primary-main font-montserratBold">
                       {item.crowdConfidence
-                        ? `${item.crowdConfidence}%`
+                        ? `${item.crowdConfidence.toFixed(1)}%`
                         : "N/A"}
                     </Text>
                   </Text>
                   <Text className="font-montserrat text-text-secondary text-xs mt-1">
                     Verified Status:{" "}
                     <Text className="text-primary-main font-montserratBold">
-                      {item.verifiedStatus ? `${item.verifiedStatus}%` : "N/A"}
+                      {item.verifiedStatus ?? "N/A"}
                     </Text>
                   </Text>
                 </View>
 
+                {/* Image */}
                 <Image
                   source={{
                     uri:
                       item.imageURL ||
                       "https://via.placeholder.com/150?text=No+Image",
                   }}
-                  className="w-16 h-16 rounded-lg border border-border"
+                  className="w-16 h-16 rounded-lg border border-border mr-3"
                 />
+
+                {/* CTA */}
                 <TouchableOpacity
-                  onPress={() => {
+                  onPress={() =>
                     router.push({
                       pathname: "/billboards/[billboardId]",
                       params: { billboardId: item.id },
-                    });
-                  }}
+                    })
+                  }
                 >
                   <Text className="text-primary-main font-montserratBold">
                     View Details

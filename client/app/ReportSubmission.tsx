@@ -11,12 +11,11 @@ import apiRequest from "@/lib/utils/apiRequest";
 import { AppDispatch, RootState } from "@/store/store";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFonts } from "expo-font";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useSearchParams } from "expo-router/build/hooks";
+import LottieView from "lottie-react-native";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Image,
   SafeAreaView,
@@ -136,7 +135,7 @@ export default function ReportSubmissionDemo() {
         className="flex-1 bg-[#F9FAFB]"
         contentContainerStyle={{ flexGrow: 1 }}
         enableOnAndroid={true}
-        extraScrollHeight={verdict ? 160 : 30}
+        extraScrollHeight={verdict ? 400 : 150}
         keyboardShouldPersistTaps="handled"
       >
         <ScrollView
@@ -149,8 +148,8 @@ export default function ReportSubmissionDemo() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Title */}
-          <View className="items-center mt-6 mb-3">
-            <Text className="text-3xl text-neutral-900 tracking-wide font-montserratBold">
+          <View className="items-center mt-6 mb-2">
+            <Text className="text-xl text-neutral-900 tracking-wide font-montserratBold">
               Submit Report
             </Text>
             <Text className="text-sm text-neutral-500 mt-1 font-montserrat">
@@ -161,13 +160,13 @@ export default function ReportSubmissionDemo() {
           {/* Preview + Annotated in the SAME card */}
           {decodedImageUrl ? (
             <View
-              className="bg-white rounded-3xl px-4 pt-4 pb-3 mb-5 border border-neutral-200 shadow-lg"
+              className="bg-white rounded-3xl px-4 pt-4 pb-3 mb-3 border border-neutral-200 shadow-lg"
               style={{ elevation: 2 }}
             >
               {/* Original */}
               <Image
                 source={{ uri: decodedImageUrl }}
-                className="w-full h-56 rounded-2xl"
+                className="w-full h-52 rounded-2xl"
                 resizeMode="cover"
               />
               <Text className="ml-1 text-xs text-neutral-500 mt-2 font-montserrat">
@@ -180,7 +179,7 @@ export default function ReportSubmissionDemo() {
                   <View className="h-[1px] bg-neutral-200 my-3" />
                   <Image
                     source={{ uri: verdict.annotatedImageUrl }}
-                    className="w-full h-56 rounded-2xl"
+                    className="w-full h-52 rounded-2xl"
                     resizeMode="cover"
                   />
                   <Text className="ml-1 text-xs text-neutral-500 mt-2 font-montserrat">
@@ -191,16 +190,39 @@ export default function ReportSubmissionDemo() {
             </View>
           ) : null}
 
-          {!hasExifGPS && (
+          {/* {!hasExifGPS && (
             <MapPicker
               initialLocation={coords ? { coords } : undefined}
               onLocationSelect={setCoords as any}
             />
+          )} */}
+          {!hasExifGPS && (
+            <View
+              className="bg-white rounded-3xl px-3 pt-3 pb-4 mb-3 border border-neutral-200 shadow-md"
+              style={{ elevation: 2 }}
+            >
+              {/* Heading */}
+              <Text className="text-lg font-montserratBold text-neutral-900 mb-2 ml-2">
+                Select Location
+              </Text>
+
+              <View className="w-full h-52 rounded-2xl ">
+                <MapPicker
+                  initialLocation={coords ? { coords } : undefined}
+                  onLocationSelect={setCoords as any}
+                />
+              </View>
+
+              <Text className="ml-1 text-xs text-neutral-500 mt-2 font-montserrat">
+                Tap to change your location.
+              </Text>
+            </View>
           )}
+
           {/* Distance Input + helper + Run AI (only BEFORE verdict) */}
           {!verdict && (
             <>
-              <View className="flex-row items-center bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 mb-2">
+              <View className="flex-row items-center bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2 mb-2">
                 <MaterialCommunityIcons
                   name="map-marker-distance"
                   size={24}
@@ -222,7 +244,7 @@ export default function ReportSubmissionDemo() {
                   }
                 />
               </View>
-              <Text className="text-xs text-neutral-500 mb-3 font-montserrat">
+              <Text className="text-xs text-neutral-500 font-montserrat">
                 Please enter the distance between you and the billboard.
               </Text>
 
@@ -231,11 +253,27 @@ export default function ReportSubmissionDemo() {
                 disabled={loadingAi}
                 activeOpacity={0.8}
                 className={`mt-3 py-3 rounded-full items-center justify-center ${
-                  loadingAi ? "bg-indigo-400" : "bg-indigo-600"
+                  loadingAi ? "bg-primary-light" : "bg-primary-main"
                 }`}
               >
                 {loadingAi ? (
-                  <ActivityIndicator color="#fff" />
+                  <View
+                    style={{
+                      width: 20,
+                      height: 20,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <LottieView
+                      source={require("../assets/animations/sparkels.json")}
+                      autoPlay
+                      loop
+                      style={{ width: 30, height: 30 }}
+                      // Optionally control speed:
+                      // speed={1.2}
+                    />
+                  </View>
                 ) : (
                   <Text className="text-white text-base tracking-wide font-montserratBold">
                     Run AI Analysis
@@ -446,40 +484,6 @@ export default function ReportSubmissionDemo() {
         </ScrollView>
       </KeyboardAwareScrollView>
     </SafeAreaView>
-  );
-}
-
-function PrimaryButton({
-  label,
-  onPress,
-  disabled,
-  children,
-}: {
-  label?: string;
-  onPress: () => void;
-  disabled?: boolean;
-  children?: React.ReactNode;
-}) {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      disabled={disabled}
-      onPress={onPress}
-      className={`rounded-full overflow-hidden ${disabled ? "opacity-70" : ""} mt-1`}
-    >
-      <LinearGradient
-        colors={["#7C3AED", "#6C3EF4", "#6D28D9"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        className="px-6 py-4 items-center justify-center"
-      >
-        {children ? (
-          children
-        ) : (
-          <Text className="text-white font-extrabold text-base">{label}</Text>
-        )}
-      </LinearGradient>
-    </TouchableOpacity>
   );
 }
 
