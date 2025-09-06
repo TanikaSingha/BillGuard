@@ -392,10 +392,10 @@ const getReportById = async (req, res) => {
 
 const voteReport = async (req, res) => {
   const { reportId } = req.params;
-  const { voteType } = req.body; // 'upvote' or 'downvote'
+  const { voteType, billboardId } = req.body; // 'upvote' or 'downvote'
   const userId = req.user._id;
 
-  const report = await Report.findById(reportId).populate("billboard");
+  const report = await Report.findById(reportId);
   if (!report) return res.status(404).json({ message: "Report not found" });
 
   // Remove user from both arrays first
@@ -418,7 +418,7 @@ const voteReport = async (req, res) => {
   await report.save();
 
   // Recalculate billboard crowd confidence
-  const allReports = await Report.find({ billboard: report.billboard._id });
+  const allReports = await Billboard.find({ _id: billboardId });
   const billboardConfidence =
     allReports.reduce((sum, r) => sum + r.aiAnalysis.confidence, 0) /
     allReports.length;
@@ -428,7 +428,7 @@ const voteReport = async (req, res) => {
 
   return res.status(200).json({
     message: "Vote recorded",
-    reportConfidence: report.aiAnalysis.confidence,
+    data: report,
     billboardConfidence: billboardConfidence,
   });
 };

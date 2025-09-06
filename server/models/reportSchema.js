@@ -96,6 +96,12 @@ const reportSchema = new mongoose.Schema({
   adminNotes: {
     type: String,
   },
+  // billboard reference
+  billboard: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Billboard",
+    required: true,
+  },
   //gamification
   xpAwarded: { type: Number, default: 0 },
   upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

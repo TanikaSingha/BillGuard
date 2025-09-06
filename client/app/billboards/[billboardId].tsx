@@ -1,4 +1,6 @@
+import { voteReport } from "@/lib/Slices/reportSlice";
 import apiRequest from "@/lib/utils/apiRequest";
+import { AppDispatch } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
@@ -12,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useDispatch } from "react-redux";
 
 const BillBoardDetails = () => {
   const { billboardId } = useLocalSearchParams();
@@ -19,6 +22,11 @@ const BillBoardDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+
+  const handleVote = (reportId: string, voteType: "upvote" | "downvote") => {
+    dispatch(voteReport({ reportId, voteType }));
+  };
 
   useEffect(() => {
     const fetchBillboard = async () => {
@@ -50,7 +58,14 @@ const BillBoardDetails = () => {
           ? { bg: "#FEE2E2", border: "#EF4444", text: "#B91C1C" }
           : { bg: "#DCFCE7", border: "#16A34A", text: "#166534" };
 
-    const verdict = (item.aiAnalysis?.verdict || "N/A").toUpperCase();
+    const verdictType = item.aiAnalysis?.verdict || "UNSURE";
+    const verdictText = verdictType.toUpperCase();
+
+    const confidence =
+      typeof item.aiAnalysis?.confidence === "number"
+        ? (item.aiAnalysis.confidence * 100).toFixed(1)
+        : null;
+
     const thumb = item.annotatedURL || item.imageURL;
 
     return (
@@ -75,22 +90,6 @@ const BillBoardDetails = () => {
               day: "numeric",
               month: "short",
               year: "numeric",
-            })}
-          </Text>
-          <Ionicons
-            name="ellipse"
-            size={4}
-            color="#9CA3AF"
-            style={{ marginHorizontal: 6 }}
-          />
-          <Text
-            className="text-sm font-montserrat"
-            style={{ color: "#6B7280" }}
-          >
-            {new Date(item.submittedAt).toLocaleTimeString("en-US", {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
             })}
           </Text>
         </View>
@@ -134,36 +133,48 @@ const BillBoardDetails = () => {
               className="mt-1 text-base font-montserratBold"
               style={{ color: "#1F2937" }}
             >
-              {verdict === "AUTHORIZED"
+              {verdictText === "AUTHORIZED"
                 ? "Authorized"
-                : verdict === "UNAUTHORIZED"
+                : verdictText === "UNAUTHORIZED"
                   ? "Unauthorized"
-                  : verdict}
+                  : "Unsure"}
             </Text>
+
+            {/* AI Confidence */}
+            {confidence !== null && (
+              <Text
+                className="mt-0.5 text-sm font-montserrat"
+                style={{ color: "#6B7280" }}
+              >
+                AI Confidence: {confidence}%
+              </Text>
+            )}
 
             {/* Issues */}
             <View className="mt-1 flex-row flex-wrap gap-2">
-              {item.violationType?.length ? (
-                item.violationType.map((issue: string, idx: number) => {
-                  const formatted = issue
-                    .replace(/_/g, " ")
-                    .toLowerCase()
-                    .replace(/^\w/, (c) => c.toUpperCase());
-                  return (
-                    <View
-                      key={idx}
-                      className="rounded-full px-2 py-0.5"
-                      style={{ backgroundColor: "#F3F4F6" }}
-                    >
-                      <Text
-                        className="text-[11px] font-montserrat"
-                        style={{ color: "#374151" }}
+              {item.aiAnalysis.detectedObjects?.length ? (
+                item.aiAnalysis.detectedObjects.map(
+                  (issue: string, idx: number) => {
+                    const formatted = issue
+                      .replace(/_/g, " ")
+                      .toLowerCase()
+                      .replace(/^\w/, (c) => c.toUpperCase());
+                    return (
+                      <View
+                        key={idx}
+                        className="rounded-full px-2 py-0.5"
+                        style={{ backgroundColor: "#F3F4F6" }}
                       >
-                        {formatted}
-                      </Text>
-                    </View>
-                  );
-                })
+                        <Text
+                          className="text-[11px] font-montserrat"
+                          style={{ color: "#374151" }}
+                        >
+                          {formatted}
+                        </Text>
+                      </View>
+                    );
+                  }
+                )
               ) : (
                 <Text
                   className="text-[11px] font-montserrat"
@@ -173,29 +184,46 @@ const BillBoardDetails = () => {
                 </Text>
               )}
             </View>
-          </View>
-        </View>
 
-        {/* Bottom row: See details */}
-        <View className="mt-4 flex-row justify-end">
-          <TouchableOpacity
-            className="flex-row items-center gap-1"
-            onPress={() =>
-              router.push({
-                pathname: "/reports/[reportId]",
-                params: { reportId: item._id },
-              })
-            }
-            activeOpacity={0.8}
-          >
-            <Text
-              className="text-sm font-montserratBold"
-              style={{ color: "#6C4FE0" }}
-            >
-              See details
-            </Text>
-            <Ionicons name="arrow-forward" size={16} color="#6C4FE0" />
-          </TouchableOpacity>
+            {/* Upvote / Downvote buttons */}
+            <View className="flex-row items-center gap-6 mt-3">
+              {/* Upvote */}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                disabled={item.userVote === "upvote"} // disable if already upvoted
+                onPress={() => handleVote(item._id, "upvote")}
+              >
+                <View className="flex-row items-center gap-1">
+                  <Ionicons
+                    name="arrow-up"
+                    size={20}
+                    color={item.userVote === "upvote" ? "#16A34A" : "#9CA3AF"}
+                  />
+                  <Text className="text-sm text-gray-700">
+                    {item.upvotes.length}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Downvote */}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                disabled={item.userVote === "downvote"} // disable if already downvoted
+                onPress={() => handleVote(item._id, "downvote")}
+              >
+                <View className="flex-row items-center gap-1">
+                  <Ionicons
+                    name="arrow-down"
+                    size={20}
+                    color={item.userVote === "downvote" ? "#EF4444" : "#9CA3AF"}
+                  />
+                  <Text className="text-sm text-gray-700">
+                    {item.downvotes.length}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </View>
     );

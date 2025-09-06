@@ -208,6 +208,12 @@ export default function Index() {
                         : "N/A"}
                     </Text>
                   </Text>
+                  <Text className="font-montserrat text-text-secondary text-xs mt-1">
+                    Verified Status:{" "}
+                    <Text className="text-primary-main font-montserratBold">
+                      {item.verifiedStatus ? `${item.verifiedStatus}%` : "N/A"}
+                    </Text>
+                  </Text>
                 </View>
 
                 <Image

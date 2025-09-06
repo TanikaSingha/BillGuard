@@ -25,7 +25,7 @@ const billBoardFeed = async (req, res) => {
     .populate({
       path: "reports",
       options: { sort: { submittedAt: -1 }, limit: 1 },
-      select: "imageURL aiAnalysis confidence upvotes downvotes",
+      select: "imageURL aiAnalysis confidence upvotes downvotes status",
     })
     .exec();
 
