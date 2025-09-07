@@ -171,38 +171,6 @@ export default function Dashboard({ role }: { role: string }) {
           </View>
         )}
 
-        {/* Overview Cards */}
-        {/* <View className="flex-row flex-wrap justify-between mb-6">
-        {[
-          {
-            label: "Pending",
-            value: stats.pending,
-            color: "bg-yellow-100 text-yellow-700",
-          },
-          {
-            label: "Resolved",
-            value: stats.resolved,
-            color: "bg-green-100 text-green-700",
-          },
-          {
-            label: "Total",
-            value: stats.total,
-            color: "bg-indigo-100 text-indigo-700",
-          },
-          { label: "Users", value: 50, color: "bg-pink-100 text-pink-700" },
-        ].map((item) => (
-          <View
-            key={item.label}
-            className={`w-[48%] rounded-2xl p-5 mb-4 shadow-md ${item.color.split(" ")[0]}`}
-          >
-            <Text className={`text-xl font-bold ${item.color.split(" ")[1]}`}>
-              {item.value}
-            </Text>
-            <Text className="text-gray-600 mt-1">{item.label}</Text>
-          </View>
-        ))}
-      </View> */}
-
         <View className="flex-row flex-wrap justify-between mb-6">
           {[
             {
@@ -249,28 +217,6 @@ export default function Dashboard({ role }: { role: string }) {
             );
           })}
         </View>
-
-        {/* Pie Chart Card */}
-        {/* <View className="bg-white rounded-2xl shadow-md p-4 mb-6">
-        <Text className="font-semibold text-gray-700 mb-3">
-          Reports by Status
-        </Text>
-        <PieChart
-          data={pieData}
-          width={screenWidth - 50}
-          height={220}
-          chartConfig={{
-            backgroundColor: "#fff",
-            backgroundGradientFrom: "#fff",
-            backgroundGradientTo: "#fff",
-            color: (opacity = 1) => `rgba(55,65,81,${opacity})`,
-          }}
-          accessor="count"
-          backgroundColor="transparent"
-          paddingLeft="15"
-          absolute
-        />
-      </View> */}
 
         <View className="rounded-2xl bg-white border border-border shadow-[0_1px_2px_rgba(0,0,0,0.04)] mb-6 overflow-hidden">
           {/* Header */}
@@ -328,29 +274,6 @@ export default function Dashboard({ role }: { role: string }) {
             absolute
           />
         </View>
-
-        {/* Bar Chart Card */}
-        {/* <View className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl shadow-lg p-4 mb-6">
-        <Text className="font-semibold text-white mb-3">
-          Reports Distribution
-        </Text>
-        <BarChart
-          data={barData}
-          width={screenWidth - 50}
-          height={220}
-          chartConfig={{
-            backgroundColor: "#4f46e5",
-            backgroundGradientFrom: "#4f46e5",
-            backgroundGradientTo: "#7c3aed",
-            decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(255,255,255,${opacity})`,
-            labelColor: (opacity = 1) => `rgba(255,255,255,${opacity})`,
-          }}
-          style={{ borderRadius: 12 }}
-          yAxisLabel=""
-          yAxisSuffix=""
-        />
-      </View> */}
 
         <View className="rounded-2xl bg-white border border-border shadow-[0_1px_2px_rgba(0,0,0,0.04)] mb-6 overflow-hidden">
           {/* Header */}
@@ -434,10 +357,17 @@ export default function Dashboard({ role }: { role: string }) {
         ))}
       </View>
        */}
-        <View style={{ flex: 1 }}>
-          <Text style={{ marginBottom: 10 }}>Billboard distribution</Text>
-          <View style={{ flex: 1 }}>
-            <BillboardMap />
+        <View className="flex-1 mb-6">
+          <View className="flex-1 bg-white rounded-2xl p-4 shadow-md">
+            {/* Heading */}
+            <Text className="text-lg font-montserratBold text-gray-900 mb-3">
+              Billboard Distribution
+            </Text>
+
+            {/* Map container */}
+            <View className="flex-1 rounded-xl overflow-hidden">
+              <BillboardMap />
+            </View>
           </View>
         </View>
         <View className="bg-white rounded-2xl border border-border shadow-[0_1px_2px_rgba(0,0,0,0.04)] p-5 mb-16">

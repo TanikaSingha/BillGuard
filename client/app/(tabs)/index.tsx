@@ -188,7 +188,7 @@ export default function Index() {
 
         {status === "succeeded" && billboards?.length > 0 && (
           <FlatList
-            data={billboards.slice(0, 5)} 
+            data={billboards.slice(0, 5)}
             showsVerticalScrollIndicator={false}
             keyExtractor={(item) => item.id} // fix: use _id from Mongo
             renderItem={({ item }) => (
@@ -255,44 +255,39 @@ export default function Index() {
                       </View>
 
                       {/* Status pill on next line */}
-                      <View
-                        className="mt-2 self-start px-2 py-1 rounded-full"
-                        style={{
-                          backgroundColor: "#F5F7FB",
-                          borderWidth: 1,
-                          borderColor: "#E6EAF0",
-                        }}
-                      >
-                        <Text className="text-xs font-montserratBold text-primary-main">
-                          {item.verifiedStatus ?? "N/A"}
-                        </Text>
+                      <View className="flex-row items-center mt-2 justify-between">
+                        {/* Status pill */}
+                        <View
+                          className="px-2 py-1 rounded-full"
+                          style={{
+                            backgroundColor: "#F5F7FB",
+                            borderWidth: 1,
+                            borderColor: "#E6EAF0",
+                          }}
+                        >
+                          <Text className="text-xs font-montserratBold text-primary-main">
+                            {item.verifiedStatus ?? "N/A"}
+                          </Text>
+                        </View>
+
+                        {/* CTA button */}
+                        <TouchableOpacity
+                          onPress={() =>
+                            router.push({
+                              pathname: "/billboards/[billboardId]",
+                              params: { billboardId: item.id },
+                            })
+                          }
+                          activeOpacity={0.8}
+                          className="ml-2 flex-row items-center"
+                        >
+                          <Ionicons
+                            name="arrow-forward-circle-outline"
+                            size={28}
+                            color="#6C4FE0"
+                          />
+                        </TouchableOpacity>
                       </View>
-                    </View>
-
-                    {/* CTA — unchanged */}
-                    <View className="flex-row items-center justify-between mt-2">
-                      {/* (Optional) If you want to show something else on left later, keep a View here */}
-                      <View />
-
-                      <TouchableOpacity
-                        onPress={() =>
-                          router.push({
-                            pathname: "/billboards/[billboardId]",
-                            params: { billboardId: item.id },
-                          })
-                        }
-                        activeOpacity={0.8}
-                        className="flex-row items-center"
-                      >
-                        <Text className="font-montserratBold text-[#6C4FE0] text-sm mr-2">
-                          See Details
-                        </Text>
-                        <Ionicons
-                          name="arrow-forward-circle-outline"
-                          size={20}
-                          color="#6C4FE0"
-                        />
-                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>

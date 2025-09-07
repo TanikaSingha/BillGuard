@@ -1,8 +1,8 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-
 const AdminTabIcon = ({
   name,
   color,
@@ -59,12 +59,15 @@ const _layout = () => {
         name="reports"
         options={{
           tabBarIcon: ({ color, size, focused }) => (
-            <AdminTabIcon
-              name="document-text-outline"
-              color={color}
-              size={size}
-              focused={focused}
-            />
+            <View
+              style={[styles.iconWrapper, focused && styles.iconWrapperActive]}
+            >
+              <MaterialCommunityIcons
+                name="billboard"
+                size={size}
+                color={color}
+              />
+            </View>
           ),
         }}
       />

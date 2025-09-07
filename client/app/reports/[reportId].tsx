@@ -177,7 +177,7 @@ const ReportDetails = () => {
         className="flex-1 bg-[#F9FAFB]"
         contentContainerStyle={{ flexGrow: 1 }}
         enableOnAndroid={true}
-        extraScrollHeight={user?.role === "NormalUser" ? 180 : 80}
+        extraScrollHeight={180}
         keyboardShouldPersistTaps="handled"
       >
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 28 }}>

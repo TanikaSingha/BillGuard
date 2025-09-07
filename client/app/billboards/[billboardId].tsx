@@ -124,16 +124,35 @@ const BillBoardDetails = () => {
           </View>
 
           {/* Verdict */}
-          <Text className="text-lg font-montserratBold text-gray-900 mb-2">
-            {verdictText === "AUTHORIZED"
-              ? "Authorized"
-              : verdictText === "UNAUTHORIZED"
-                ? "Unauthorized"
-                : "Unsure"}
-          </Text>
+          <View className="flex-row items-center justify-between mb-2">
+            {/* Heading */}
+            <Text className="text-lg font-montserratBold text-gray-900">
+              {verdictText === "AUTHORIZED"
+                ? "Authorized"
+                : verdictText === "UNAUTHORIZED"
+                  ? "Unauthorized"
+                  : "Unsure"}
+            </Text>
+
+            {/* Admin-only button */}
+            {user?.role === "AdminUser" && (
+              <TouchableOpacity
+                onPress={() => {
+                  router.push({
+                    pathname: `/reports/[reportId]`,
+                    params: { reportId: item._id },
+                  });
+                }}
+                className="w-9 h-9 rounded-full bg-[#6C4FE0] items-center justify-center"
+                activeOpacity={0.8}
+              >
+                <Ionicons name="eye-outline" size={20} color="#fff" />
+              </TouchableOpacity>
+            )}
+          </View>
 
           {/* AI Confidence & Community Trust */}
-          <View className="mb-3">
+          <View className="mb-4">
             <View className="flex-row items-center mb-1">
               <Ionicons
                 name="speedometer-outline"
@@ -164,22 +183,10 @@ const BillBoardDetails = () => {
             </View>
           </View>
 
-          {/* Status pill */}
           <View
-            className="self-start rounded-lg px-2 py-0.5 mb-3"
-            style={{
-              backgroundColor: statusStyles.bg,
-              borderColor: statusStyles.border,
-              borderWidth: 1,
-            }}
-          >
-            <Text
-              className="text-[10px] font-montserratBold"
-              style={{ color: statusStyles.text }}
-            >
-              {item.status?.toUpperCase()}
-            </Text>
-          </View>
+            className="mb-4"
+            style={{ height: 1, backgroundColor: "#a8a9a9ff" }}
+          />
 
           {/* Action row */}
           <View className="flex-row items-center justify-center gap-4">
@@ -238,21 +245,6 @@ const BillBoardDetails = () => {
                 {item.downvotes.length}
               </Text>
             </TouchableOpacity>
-            {user?.role === "AdminUser" && (
-              <TouchableOpacity
-                onPress={() => {
-                  router.push({
-                    pathname: `/reports/[reportId]`,
-                    params: { reportId: item._id },
-                  });
-                }}
-                className="ml-auto"
-              >
-                <Text className="text-sm font-montserrat text-gray-500 underline">
-                  View Details
-                </Text>
-              </TouchableOpacity>
-            )}
           </View>
         </View>
       </View>
