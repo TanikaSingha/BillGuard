@@ -238,19 +238,21 @@ const BillBoardDetails = () => {
                 {item.downvotes.length}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                router.push({
-                  pathname: `/reports/[reportId]`,
-                  params: { reportId: item._id },
-                });
-              }}
-              className="ml-auto"
-            >
-              <Text className="text-sm font-montserrat text-gray-500 underline">
-                View Details
-              </Text>
-            </TouchableOpacity>
+            {user?.role === "AdminUser" && (
+              <TouchableOpacity
+                onPress={() => {
+                  router.push({
+                    pathname: `/reports/[reportId]`,
+                    params: { reportId: item._id },
+                  });
+                }}
+                className="ml-auto"
+              >
+                <Text className="text-sm font-montserrat text-gray-500 underline">
+                  View Details
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
