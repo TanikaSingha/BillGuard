@@ -192,54 +192,110 @@ export default function Index() {
             showsVerticalScrollIndicator={false}
             keyExtractor={(item) => item.id} // fix: use _id from Mongo
             renderItem={({ item }) => (
-              <View className="border border-2 border-border flex-row justify-between items-center bg-surface rounded-xl px-3 py-3 mb-4 mx-2 shadow-md shadow-primary-main">
-                {/* Left section */}
-                <View className="flex-1 mr-3">
-                  <Text className="font-montserratBold text-text-primary">
-                    Billboard #{item.id.slice(-6)} {/* shorter id */}
-                  </Text>
-                  <Text className="font-montserrat text-text-secondary text-sm">
-                    {item.location?.address || "Unknown Location"}
-                  </Text>
-                  <Text className="font-montserrat text-text-secondary text-xs mt-1">
-                    Crowd Confidence:{" "}
-                    <Text className="text-primary-main font-montserratBold">
-                      {item.crowdConfidence
-                        ? `${item.crowdConfidence.toFixed(1)}%`
-                        : "N/A"}
-                    </Text>
-                  </Text>
-                  <Text className="font-montserrat text-text-secondary text-xs mt-1">
-                    Status:{" "}
-                    <Text className="text-primary-main font-montserratBold">
-                      {item.verifiedStatus ?? "N/A"}
-                    </Text>
-                  </Text>
-                </View>
-
-                {/* Image */}
-                <Image
-                  source={{
-                    uri:
-                      item.imageURL ||
-                      "https://via.placeholder.com/150?text=No+Image",
+              <View className="mb-4 mx-2">
+                <View
+                  className="flex-row bg-white rounded-xl border border-border overflow-hidden"
+                  style={{
+                    shadowColor: "#1A1D23",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.06,
+                    shadowRadius: 16,
+                    elevation: 4,
                   }}
-                  className="w-16 h-16 rounded-lg border border-border mr-3"
-                />
-
-                {/* CTA */}
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: "/billboards/[billboardId]",
-                      params: { billboardId: item.id },
-                    })
-                  }
                 >
-                  <Text className="text-primary-main font-montserratBold">
-                    View Details
-                  </Text>
-                </TouchableOpacity>
+                  {/* IMAGE (right-aligned small thumbnail) */}
+                  <Image
+                    source={{
+                      uri:
+                        item.imageURL ||
+                        "https://via.placeholder.com/200?text=No+Image",
+                    }}
+                    className="w-32"
+                    style={{ height: "100%", resizeMode: "cover" }}
+                    accessibilityLabel={`Image for billboard ${item.id.slice(-6)}`}
+                  />
+
+                  {/* LEFT: textual content */}
+                  <View className="flex-1 px-4 py-3 justify-between">
+                    <View>
+                      <Text
+                        className="font-montserratBold text-text-primary text-base"
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        Billboard #{item.id.slice(-6)}
+                      </Text>
+
+                      {/* Address — trimmed till the 2nd comma */}
+                      <Text
+                        className="text-[12px] font-montserratBold mt-1"
+                        style={{ color: "#4C1D95" }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {item.location?.address
+                          ? item.location.address
+                              .split(",")
+                              .slice(0, 2)
+                              .join(",")
+                              .trim()
+                          : "Unknown Location"}
+                      </Text>
+
+                      {/* Crowd confidence */}
+                      <View className="flex-row items-center mt-1">
+                        <Text className="text-xs font-montserrat text-text-secondary">
+                          Crowd Confidence:
+                        </Text>
+                        <Text className="text-xs font-montserratBold text-primary-main ml-1">
+                          {item.crowdConfidence
+                            ? `${item.crowdConfidence.toFixed(1)}%`
+                            : "N/A"}
+                        </Text>
+                      </View>
+
+                      {/* Status pill on next line */}
+                      <View
+                        className="mt-2 self-start px-2 py-1 rounded-full"
+                        style={{
+                          backgroundColor: "#F5F7FB",
+                          borderWidth: 1,
+                          borderColor: "#E6EAF0",
+                        }}
+                      >
+                        <Text className="text-xs font-montserratBold text-primary-main">
+                          {item.verifiedStatus ?? "N/A"}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* CTA — unchanged */}
+                    <View className="flex-row items-center justify-between mt-2">
+                      {/* (Optional) If you want to show something else on left later, keep a View here */}
+                      <View />
+
+                      <TouchableOpacity
+                        onPress={() =>
+                          router.push({
+                            pathname: "/billboards/[billboardId]",
+                            params: { billboardId: item.id },
+                          })
+                        }
+                        activeOpacity={0.8}
+                        className="flex-row items-center"
+                      >
+                        <Text className="font-montserratBold text-[#6C4FE0] text-sm mr-2">
+                          See Details
+                        </Text>
+                        <Ionicons
+                          name="arrow-forward-circle-outline"
+                          size={20}
+                          color="#6C4FE0"
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
               </View>
             )}
           />

@@ -2,16 +2,10 @@ import { fetchBillboard, voteReport } from "@/lib/Slices/billBoardSlice";
 import { AppDispatch, RootState } from "@/store/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import LottieView from "lottie-react-native";
+import { ScrollView } from "moti";
 import { useEffect } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
 const BillBoardDetails = () => {
@@ -21,6 +15,14 @@ const BillBoardDetails = () => {
   );
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
+  // helper (inside component)
+  const statusKey = (selected?.verifiedStatus || "").toLowerCase();
+  const statusStyles =
+    statusKey === "pending"
+      ? { bg: "#FEF3C7", border: "#F59E0B", text: "#B45309" }
+      : statusKey === "rejected"
+        ? { bg: "#FEE2E2", border: "#EF4444", text: "#B91C1C" }
+        : { bg: "#DCFCE7", border: "#16A34A", text: "#166534" };
 
   const handleVote = (reportId: string, voteType: "upvote" | "downvote") => {
     dispatch(voteReport({ reportId, voteType }));
@@ -29,7 +31,6 @@ const BillBoardDetails = () => {
   useEffect(() => {
     dispatch(fetchBillboard(billboardId as string));
   }, [billboardId]);
-
   const renderReportItem = ({ item }: { item: any }) => {
     const status = (item?.status || "").toLowerCase();
     const statusStyles =
@@ -51,171 +52,180 @@ const BillBoardDetails = () => {
         ? (item.communityTrustScore * 100).toFixed(2)
         : 0;
     const thumb = item.annotatedURL || item.imageURL;
-
+    const isUp = item.userVote === "upvote";
+    const isDown = item.userVote === "downvote";
     return (
       <View
-        className="mb-4 mx-2 rounded-2xl p-4 shadow-md border border-border"
+        className="mb-4 mx-2 rounded-2xl bg-white overflow-hidden shadow-md"
         style={{
-          backgroundColor: "#FFFFFF",
-          borderColor: "#E5E7EB",
+          borderWidth: 1,
+          borderColor: "#EDEFF3",
           shadowColor: "#000",
-          shadowOpacity: 0.06,
-          shadowRadius: 6,
-          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 4 },
         }}
       >
-        {/* Top row: date & time */}
-        <View className="flex-row items-center">
-          <Text
-            className="text-sm font-montserrat"
-            style={{ color: "#6B7280" }}
-          >
-            {new Date(item.submittedAt).toLocaleDateString("en-US", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
-          </Text>
-        </View>
+        {/* Top: large billboard image */}
+        {thumb ? (
+          <Image
+            source={{ uri: thumb }}
+            className="w-full h-40"
+            style={{ borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View
+            className="w-full h-40 bg-gray-100"
+            style={{ borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
+          />
+        )}
 
-        {/* Middle row */}
-        <View className="flex-row items-start gap-3 mt-4 border-b border-text-secondary/20 pb-4">
-          {thumb ? (
-            <Image
-              source={{ uri: thumb }}
-              className="h-24 w-24 rounded-xl"
-              resizeMode="cover"
-            />
-          ) : (
-            <View
-              className="h-24 w-24 rounded-xl"
-              style={{ backgroundColor: "#F3F4F6" }}
-            />
-          )}
-
-          <View className="flex-1">
-            {/* Status pill */}
-            <View
-              className="self-start rounded-lg px-2 py-0.5"
-              style={{
-                backgroundColor: statusStyles.bg,
-                borderColor: statusStyles.border,
-                borderWidth: 1,
-              }}
-            >
-              <Text
-                className="text-[10px] font-montserratBold"
-                style={{ color: statusStyles.text }}
+        {/* Body content */}
+        <View className="p-4">
+          {/* Issues pills */}
+          <View className="flex-row flex-wrap items-center gap-2 mb-3">
+            {item.aiAnalysis?.detectedObjects?.length ? (
+              item.aiAnalysis.detectedObjects.map(
+                (issue: string, idx: number) => {
+                  const formatted = issue
+                    .replace(/_/g, " ")
+                    .toLowerCase()
+                    .replace(/^\w/, (c) => c.toUpperCase());
+                  return (
+                    <View
+                      key={idx}
+                      className="rounded-full px-3 py-1"
+                      style={{ backgroundColor: "#A78BFA" }}
+                    >
+                      <Text className="text-xs font-montserrat text-white">
+                        {formatted}
+                      </Text>
+                    </View>
+                  );
+                }
+              )
+            ) : (
+              <View
+                className="rounded-full px-3 py-1 bg-gray-100"
+                style={{ borderWidth: 1, borderColor: "#F1F5F9" }}
               >
-                {item.status?.toUpperCase()}
-              </Text>
-            </View>
-
-            {/* Verdict */}
-            <Text
-              numberOfLines={1}
-              className="mt-1 text-base font-montserratBold"
-              style={{ color: "#1F2937" }}
-            >
-              {verdictText === "AUTHORIZED"
-                ? "Authorized"
-                : verdictText === "UNAUTHORIZED"
-                  ? "Unauthorized"
-                  : "Unsure"}
-            </Text>
-
-            {/* AI Confidence */}
-            {confidence !== null && (
-              <Text
-                className="mt-0.5 text-sm font-montserrat"
-                style={{ color: "#6B7280" }}
-              >
-                AI Confidence: {confidence}%
-              </Text>
-            )}
-           
-            {communityTrustScore !== null && (
-              <Text
-                className="mt-0.5 text-sm font-montserrat"
-                style={{ color: "#6B7280" }}
-              >
-                Community Trust Score: {communityTrustScore}
-              </Text>
-            )}
-
-            {/* Issues */}
-            <View className="mt-1 flex-row flex-wrap gap-2">
-              {item.aiAnalysis.detectedObjects?.length ? (
-                item.aiAnalysis.detectedObjects.map(
-                  (issue: string, idx: number) => {
-                    const formatted = issue
-                      .replace(/_/g, " ")
-                      .toLowerCase()
-                      .replace(/^\w/, (c) => c.toUpperCase());
-                    return (
-                      <View
-                        key={idx}
-                        className="rounded-full px-2 py-0.5"
-                        style={{ backgroundColor: "#F3F4F6" }}
-                      >
-                        <Text
-                          className="text-[11px] font-montserrat"
-                          style={{ color: "#374151" }}
-                        >
-                          {formatted}
-                        </Text>
-                      </View>
-                    );
-                  }
-                )
-              ) : (
-                <Text
-                  className="text-[11px] font-montserrat"
-                  style={{ color: "#9CA3AF" }}
-                >
+                <Text className="text-xs font-montserrat text-gray-500">
                   No issues
                 </Text>
-              )}
+              </View>
+            )}
+          </View>
+
+          {/* Heading */}
+          <Text
+            numberOfLines={1}
+            className="text-lg font-montserratBold text-gray-900 mb-2"
+            style={{ lineHeight: 22 }}
+          >
+            {verdictText === "AUTHORIZED"
+              ? "Authorized"
+              : verdictText === "UNAUTHORIZED"
+                ? "Unauthorized"
+                : "Unsure"}
+          </Text>
+
+          {/* AI Confidence & Community Trust */}
+          <View className="mb-3">
+            <View className="flex-row items-center mb-1">
+              <Ionicons
+                name="speedometer-outline"
+                size={16}
+                color="#6B7280"
+                style={{ marginRight: 6 }}
+              />
+              <Text className="text-sm font-montserrat text-gray-600">
+                AI Confidence:{" "}
+                <Text className="font-montserratBold text-gray-800">
+                  {confidence !== null ? `${confidence}%` : "N/A"}
+                </Text>
+              </Text>
             </View>
 
-            {/* Upvote / Downvote buttons */}
-            <View className="flex-row items-center gap-6 mt-3">
-              {/* Upvote */}
-              <TouchableOpacity
-                activeOpacity={0.7}
-                disabled={item.userVote === "upvote"} // disable if already upvoted
-                onPress={() => handleVote(item._id, "upvote")}
-              >
-                <View className="flex-row items-center gap-1">
-                  <Ionicons
-                    name="arrow-up"
-                    size={20}
-                    color={item.userVote === "upvote" ? "#16A34A" : "#9CA3AF"}
-                  />
-                  <Text className="text-sm text-gray-700">
-                    {item.upvotes.length}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
-              {/* Downvote */}
-              <TouchableOpacity
-                activeOpacity={0.7}
-                disabled={item.userVote === "downvote"} // disable if already downvoted
-                onPress={() => handleVote(item._id, "downvote")}
-              >
-                <View className="flex-row items-center gap-1">
-                  <Ionicons
-                    name="arrow-down"
-                    size={20}
-                    color={item.userVote === "downvote" ? "#EF4444" : "#9CA3AF"}
-                  />
-                  <Text className="text-sm text-gray-700">
-                    {item.downvotes.length}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+            <View className="flex-row items-center">
+              <Ionicons
+                name="people-outline"
+                size={16}
+                color="#6B7280"
+                style={{ marginRight: 6 }}
+              />
+              <Text className="text-sm font-montserrat text-gray-600">
+                Community Trust Score:{" "}
+                <Text className="font-montserratBold text-gray-800">
+                  {communityTrustScore ?? "0.00"}%
+                </Text>
+              </Text>
             </View>
+          </View>
+
+          {/* Divider (darker now) */}
+          <View
+            style={{ height: 1, backgroundColor: "#D1D5DB" }}
+            className="mb-4"
+          />
+
+          {/* Action row: Upvote / Downvote */}
+          <View className="flex-row items-center justify-center gap-4">
+            {/* Upvote */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              disabled={isUp}
+              onPress={() => handleVote(item._id, "upvote")}
+              className={`flex-row items-center px-4 py-2 rounded-full border ${
+                isUp
+                  ? "border-green-500 bg-green-50"
+                  : "border-gray-200 bg-white"
+              }`}
+              accessibilityLabel="Upvote"
+            >
+              <Ionicons
+                name={isUp ? "thumbs-up" : "thumbs-up-outline"}
+                size={16}
+                color={isUp ? "#16A34A" : "#6B7280"}
+              />
+              <Text
+                className={`ml-2 text-sm font-montserrat ${
+                  isUp ? "text-green-700 font-semibold" : "text-gray-700"
+                }`}
+              >
+                Upvote
+              </Text>
+              <Text className="ml-2 text-sm font-montserrat text-gray-700">
+                {item.upvotes.length}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Downvote */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              disabled={isDown}
+              onPress={() => handleVote(item._id, "downvote")}
+              className={`flex-row items-center px-4 py-2 rounded-full border ${
+                isDown ? "border-red-500 bg-red-50" : "border-gray-200 bg-white"
+              }`}
+              accessibilityLabel="Downvote"
+            >
+              <Ionicons
+                name={isDown ? "thumbs-down" : "thumbs-down-outline"}
+                size={16}
+                color={isDown ? "#EF4444" : "#6B7280"}
+              />
+              <Text
+                className={`ml-2 text-sm font-montserrat ${
+                  isDown ? "text-red-700 font-semibold" : "text-gray-700"
+                }`}
+              >
+                Downvote
+              </Text>
+              <Text className="ml-2 text-sm font-montserrat text-gray-700">
+                {item.downvotes.length}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -223,46 +233,202 @@ const BillBoardDetails = () => {
   };
 
   if (status === "loading")
-    return <ActivityIndicator size="large" style={{ marginTop: 20 }} />;
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <LottieView
+          source={require("../../assets/animations/loader.json")} // put your lottie file in assets/animations
+          autoPlay
+          loop
+          style={{ width: 160, height: 160 }}
+        />
+      </View>
+    );
+
   if (error) return <Text style={{ color: "red", margin: 20 }}>{error}</Text>;
   if (!selected) return <Text>No billboard data found.</Text>;
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
-      <View className="p-4">
-        {/* Billboard Heading */}
-        <TouchableOpacity onPress={() => router.back()} className="mb-4">
-          <Text>Back</Text>
-        </TouchableOpacity>
-        <Text className="text-xl font-montserratBold mb-2 text-gray-900">
-          Billboard @ {selected.location?.address || "Unknown location"}
-        </Text>
-        <Text className="text-sm text-gray-600 mb-1">
-          Coordinates: {selected.location?.coordinates?.join(", ")}
-        </Text>
-        <Text className="text-sm text-gray-600 mb-1">
-          Status: {selected.verifiedStatus}
-        </Text>
-        <Text className="text-sm text-gray-600 mb-4">
-          Crowd Confidence: {selected.crowdConfidence.toFixed(2)}%
-        </Text>
+    <View className="flex-1 bg-background">
+      {/* Header */}
+      <View className="bg-primary-dark px-4 py-3 shadow-lg">
+        <View className="flex-row items-center">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            activeOpacity={0.8}
+            className="h-10 w-10 rounded-full items-center justify-center active:opacity-70 bg-white/20"
+          >
+            <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
 
-        {/* Reports */}
-        <Text className="text-lg font-montserratBold mb-3 text-gray-800">
-          Reports
-        </Text>
-        {selected.reports?.length ? (
-          <FlatList
-            data={selected.reports}
-            keyExtractor={(item) => item._id}
-            renderItem={renderReportItem}
-            scrollEnabled={false}
-          />
-        ) : (
-          <Text className="text-center text-gray-500">No reports found.</Text>
-        )}
+          <Text className="ml-3 font-montserratBold text-xl text-white tracking-widest">
+            Billboard Details
+          </Text>
+        </View>
       </View>
-    </ScrollView>
+      <ScrollView className="mb-2">
+        {/* Main content */}
+        <View className="px-4 py-4">
+          {/* Billboard summary card */}
+          <View
+            className="rounded-2xl mb-4 overflow-hidden"
+            style={{
+              backgroundColor: "#F8FAFC", // very light tone instead of strong gradient
+              padding: 12,
+              // softer shadow for a professional look
+              shadowColor: "#0f172a",
+              shadowOpacity: 0.06,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 6 },
+              elevation: 6,
+            }}
+          >
+            {/* translucent inner card to lift content slightly */}
+            <View
+              className="rounded-xl"
+              style={{
+                backgroundColor: "rgba(255,255,255,0.92)",
+                padding: 14,
+              }}
+            >
+              {/* Heading */}
+              <View className="mb-3">
+                <Text className="text-lg font-montserratBold text-gray-900 leading-snug">
+                  Billboard Details
+                </Text>
+              </View>
+
+              {/* Coordinates card (contains location card inside) */}
+              {/* Location Card */}
+              <View
+                className="flex-row items-center p-3 rounded-xl mb-3"
+                style={{
+                  backgroundColor: "#F8FAFC",
+                  borderLeftWidth: 3,
+                  borderLeftColor: "#6c4fe0ff",
+                }}
+              >
+                <View className="p-2 rounded-full mr-3 bg-primary-main/20">
+                  <Ionicons
+                    name="location-outline"
+                    size={18}
+                    color="#6c4fe0ff"
+                  />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs font-montserratSemiBold text-gray-500 uppercase tracking-wide mb-1">
+                    Location
+                  </Text>
+                  <Text
+                    numberOfLines={3}
+                    ellipsizeMode="tail"
+                    className="text-sm font-montserrat text-gray-800 font-medium"
+                  >
+                    {selected.location?.address || "Unknown location"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Coordinates Card */}
+              <View
+                className="flex-row items-center p-3 rounded-xl"
+                style={{
+                  backgroundColor: "#F8FAFC",
+                  borderLeftWidth: 3,
+                  borderLeftColor: "#10B981", // green accent for distinction
+                }}
+              >
+                <View className="p-2 rounded-full mr-3 bg-green-100">
+                  <Ionicons name="navigate-outline" size={18} color="#059669" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs font-montserratSemiBold text-gray-500 uppercase tracking-wide mb-1">
+                    Coordinates
+                  </Text>
+                  <Text
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    className="text-sm font-montserrat text-gray-800 font-medium"
+                  >
+                    {selected.location?.coordinates?.join(", ") || "N/A"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Row: Confidence pill + Status pill (subtle, compact) */}
+              <View className="flex-row items-center gap-3 mt-4">
+                {/* status pill */}
+                <View
+                  className="rounded-xl px-3 py-1.5 flex-row items-center"
+                  style={{
+                    backgroundColor: statusStyles.bg,
+                    borderWidth: 1,
+                    borderColor: statusStyles.border,
+                  }}
+                >
+                  <Text
+                    className="text-xs font-montserratBold"
+                    style={{ color: statusStyles.text }}
+                  >
+                    {(selected?.verifiedStatus || "UNKNOWN").toUpperCase()}
+                  </Text>
+                </View>
+
+                {/* confidence pill */}
+                <View
+                  className="rounded-full px-3 py-1.5 flex-row items-center"
+                  style={{
+                    backgroundColor: "#F8FAFF",
+                    borderWidth: 1,
+                    borderColor: "#EEF2FF",
+                  }}
+                >
+                  <Ionicons
+                    name="speedometer-outline"
+                    size={14}
+                    color="#2563EB"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text className="text-xs font-montserratBold text-gray-700">
+                    {typeof selected?.crowdConfidence === "number"
+                      ? `${selected.crowdConfidence.toFixed(2)}%`
+                      : "N/A"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Reports header */}
+          <View className="flex-row items-center justify-between ">
+            <Text className="text-lg font-montserratBold text-gray-800">
+              Reports
+            </Text>
+            <Text className="text-sm font-montserrat text-gray-500">
+              {selected.reports?.length ?? 0} found
+            </Text>
+          </View>
+
+          {/* Reports list container */}
+          <View className="bg-transparent rounded-2xl pt-2">
+            {selected.reports?.length ? (
+              <FlatList
+                data={selected.reports}
+                keyExtractor={(item) => item._id}
+                renderItem={renderReportItem} // unchanged
+                scrollEnabled={false} // keep your original choice
+                contentContainerStyle={{ paddingBottom: 30 }}
+              />
+            ) : (
+              <View className="items-center py-8">
+                <Text className="text-center text-gray-500">
+                  No reports found.
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
