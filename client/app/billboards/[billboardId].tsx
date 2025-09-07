@@ -19,10 +19,12 @@ const BillBoardDetails = () => {
   const { status, error, selected } = useSelector(
     (state: RootState) => state.billboard
   );
+  const { user } = useSelector((state: RootState) => state.user);
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
 
   const handleVote = (reportId: string, voteType: "upvote" | "downvote") => {
+    if (user?.role !== "NormalUser") return;
     dispatch(voteReport({ reportId, voteType }));
   };
 
@@ -133,7 +135,7 @@ const BillBoardDetails = () => {
                 AI Confidence: {confidence}%
               </Text>
             )}
-           
+
             {communityTrustScore !== null && (
               <Text
                 className="mt-0.5 text-sm font-montserrat"
@@ -215,6 +217,15 @@ const BillBoardDetails = () => {
                   </Text>
                 </View>
               </TouchableOpacity>
+              {user?.role === "AdminUser" && (
+                <TouchableOpacity
+                  onPress={() => {
+                    router.push(`/reports/${item._id}`);
+                  }}
+                >
+                  <Text>Show Details</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>

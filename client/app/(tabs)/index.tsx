@@ -188,7 +188,7 @@ export default function Index() {
 
         {status === "succeeded" && billboards?.length > 0 && (
           <FlatList
-            data={billboards.slice(0, 5)} // limit to 5
+            data={billboards.slice(0, 5)} 
             showsVerticalScrollIndicator={false}
             keyExtractor={(item) => item.id} // fix: use _id from Mongo
             renderItem={({ item }) => (
