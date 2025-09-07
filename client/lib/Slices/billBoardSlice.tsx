@@ -22,6 +22,7 @@ interface BillboardDetails {
 interface Report {
   _id: string;
   imageURL: string;
+  annotatedImageURL: string;
   aiAnalysis: {
     verdict: "unauthorized" | "authorized" | "unsure";
     confidence: number;
@@ -78,6 +79,54 @@ export const fetchBillboard = createAsyncThunk<
     return res.data.data;
   } catch (err: any) {
     return rejectWithValue(err.message || "Failed to fetch billboard");
+  }
+});
+
+export const getAllBillboards = createAsyncThunk<
+  {
+    billboards: Billboard[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  },
+  {
+    page?: number;
+    limit?: number;
+    status?: string;
+    minConfidence?: number;
+    maxConfidence?: number;
+    zoneId?: string;
+    fromDate?: string;
+    toDate?: string;
+  },
+  { rejectValue: string }
+>("billboard/getAllBillboards", async (filters, { rejectWithValue }) => {
+  try {
+    const token = await SecureStore.getItemAsync("authToken");
+
+    const res = await apiRequest.get<{
+      data: Billboard[];
+      pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      };
+    }>("/billboard", {
+      headers: { Authorization: `Bearer ${token}` },
+      params: filters,
+    });
+    console.log(res.data.data);
+
+    return {
+      billboards: res.data.data,
+      pagination: res.data.pagination,
+    };
+  } catch (err: any) {
+    return rejectWithValue(err.message || "Failed to fetch billboards");
   }
 });
 
@@ -145,6 +194,18 @@ const billBoardSlice = createSlice({
             state.selected.reports[index] = updatedReport;
           }
         }
+      })
+      .addCase(getAllBillboards.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(getAllBillboards.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.billboards = action.payload.billboards;
+      })
+      .addCase(getAllBillboards.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload ?? "Something went wrong";
       });
   },
 });

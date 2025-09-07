@@ -15,6 +15,7 @@ import {
 import { BarChart, PieChart } from "react-native-chart-kit";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
+import BillboardMap from "../components/BillboardMap";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -433,6 +434,12 @@ export default function Dashboard({ role }: { role: string }) {
         ))}
       </View>
        */}
+        <View style={{ flex: 1 }}>
+          <Text style={{ marginBottom: 10 }}>Billboard distribution</Text>
+          <View style={{ flex: 1 }}>
+            <BillboardMap />
+          </View>
+        </View>
         <View className="bg-white rounded-2xl border border-border shadow-[0_1px_2px_rgba(0,0,0,0.04)] p-5 mb-16">
           <Text
             className="font-montserratBold text-base mb-4"

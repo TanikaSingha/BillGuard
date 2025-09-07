@@ -13,9 +13,11 @@ const BillBoardDetails = () => {
   const { status, error, selected } = useSelector(
     (state: RootState) => state.billboard
   );
+  const { user } = useSelector((state: RootState) => state.user);
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  // helper (inside component)
+
+  // helper
   const statusKey = (selected?.verifiedStatus || "").toLowerCase();
   const statusStyles =
     statusKey === "pending"
@@ -25,12 +27,14 @@ const BillBoardDetails = () => {
         : { bg: "#DCFCE7", border: "#16A34A", text: "#166534" };
 
   const handleVote = (reportId: string, voteType: "upvote" | "downvote") => {
+    if (user?.role !== "NormalUser") return;
     dispatch(voteReport({ reportId, voteType }));
   };
 
   useEffect(() => {
     dispatch(fetchBillboard(billboardId as string));
   }, [billboardId]);
+
   const renderReportItem = ({ item }: { item: any }) => {
     const status = (item?.status || "").toLowerCase();
     const statusStyles =
@@ -54,8 +58,10 @@ const BillBoardDetails = () => {
     const thumb = item.annotatedURL || item.imageURL;
     const isUp = item.userVote === "upvote";
     const isDown = item.userVote === "downvote";
+
     return (
       <View
+        key={item._id}
         className="mb-4 mx-2 rounded-2xl bg-white overflow-hidden shadow-md"
         style={{
           borderWidth: 1,
@@ -66,7 +72,7 @@ const BillBoardDetails = () => {
           shadowOffset: { width: 0, height: 4 },
         }}
       >
-        {/* Top: large billboard image */}
+        {/* Top: billboard image */}
         {thumb ? (
           <Image
             source={{ uri: thumb }}
@@ -81,7 +87,7 @@ const BillBoardDetails = () => {
           />
         )}
 
-        {/* Body content */}
+        {/* Body */}
         <View className="p-4">
           {/* Issues pills */}
           <View className="flex-row flex-wrap items-center gap-2 mb-3">
@@ -94,7 +100,7 @@ const BillBoardDetails = () => {
                     .replace(/^\w/, (c) => c.toUpperCase());
                   return (
                     <View
-                      key={idx}
+                      key={`${item._id}-issue-${idx}`}
                       className="rounded-full px-3 py-1"
                       style={{ backgroundColor: "#A78BFA" }}
                     >
@@ -117,12 +123,8 @@ const BillBoardDetails = () => {
             )}
           </View>
 
-          {/* Heading */}
-          <Text
-            numberOfLines={1}
-            className="text-lg font-montserratBold text-gray-900 mb-2"
-            style={{ lineHeight: 22 }}
-          >
+          {/* Verdict */}
+          <Text className="text-lg font-montserratBold text-gray-900 mb-2">
             {verdictText === "AUTHORIZED"
               ? "Authorized"
               : verdictText === "UNAUTHORIZED"
@@ -146,7 +148,6 @@ const BillBoardDetails = () => {
                 </Text>
               </Text>
             </View>
-
             <View className="flex-row items-center">
               <Ionicons
                 name="people-outline"
@@ -163,13 +164,24 @@ const BillBoardDetails = () => {
             </View>
           </View>
 
-          {/* Divider (darker now) */}
+          {/* Status pill */}
           <View
-            style={{ height: 1, backgroundColor: "#D1D5DB" }}
-            className="mb-4"
-          />
+            className="self-start rounded-lg px-2 py-0.5 mb-3"
+            style={{
+              backgroundColor: statusStyles.bg,
+              borderColor: statusStyles.border,
+              borderWidth: 1,
+            }}
+          >
+            <Text
+              className="text-[10px] font-montserratBold"
+              style={{ color: statusStyles.text }}
+            >
+              {item.status?.toUpperCase()}
+            </Text>
+          </View>
 
-          {/* Action row: Upvote / Downvote */}
+          {/* Action row */}
           <View className="flex-row items-center justify-center gap-4">
             {/* Upvote */}
             <TouchableOpacity
@@ -226,6 +238,21 @@ const BillBoardDetails = () => {
                 {item.downvotes.length}
               </Text>
             </TouchableOpacity>
+            {user?.role === "AdminUser" && (
+              <TouchableOpacity
+                onPress={() => {
+                  router.push({
+                    pathname: `/reports/[reportId]`,
+                    params: { reportId: item._id },
+                  });
+                }}
+                className="ml-auto"
+              >
+                <Text className="text-sm font-montserrat text-gray-500 underline">
+                  View Details
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -236,7 +263,7 @@ const BillBoardDetails = () => {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <LottieView
-          source={require("../../assets/animations/loader.json")} // put your lottie file in assets/animations
+          source={require("../../assets/animations/loader.json")}
           autoPlay
           loop
           style={{ width: 160, height: 160 }}
@@ -265,10 +292,10 @@ const BillBoardDetails = () => {
           </Text>
         </View>
       </View>
+
       <ScrollView className="mb-2">
-        {/* Main content */}
         <View className="px-4 py-4">
-          {/* Billboard summary card */}
+          {/* Billboard summary */}
           <View
             className="rounded-2xl mb-4 overflow-hidden"
             style={{
@@ -408,14 +435,13 @@ const BillBoardDetails = () => {
             </Text>
           </View>
 
-          {/* Reports list container */}
           <View className="bg-transparent rounded-2xl pt-2">
             {selected.reports?.length ? (
               <FlatList
                 data={selected.reports}
                 keyExtractor={(item) => item._id}
-                renderItem={renderReportItem} // unchanged
-                scrollEnabled={false} // keep your original choice
+                renderItem={renderReportItem}
+                scrollEnabled={false}
                 contentContainerStyle={{ paddingBottom: 30 }}
               />
             ) : (
