@@ -15,7 +15,7 @@ const reportRouter = express.Router();
 reportRouter.post("/submit", verifyToken, createReport);
 reportRouter.get("/user/:userId", verifyToken, getReportsByUser);
 reportRouter.get("/details/:reportId", verifyToken, getReportById);
-reportRouter.get("/vote/:reportId", verifyToken, voteReport);
+reportRouter.post("/vote/:reportId", verifyToken, voteReport);
 reportRouter.get("/all", verifyToken, verifyAdmin, getAllReports);
 reportRouter.patch(
   "/update/:reportId",

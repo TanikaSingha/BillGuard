@@ -109,8 +109,6 @@ const createReport = async (req, res) => {
     const loc = await axios.get(url, {
       headers: { "User-Agent": "Billguard-Hackathon/2.0" },
     });
-    console.log(loc.data);
-
     newLocation.address = loc.data.display_name || "N/A";
     newLocation.zoneId = loc.data.osm_id || "N/A";
   } catch (err) {
@@ -153,8 +151,8 @@ const createReport = async (req, res) => {
   const report = await Report.create(sanitizedReport);
   await NormalUser.findByIdAndUpdate(id, { $inc: { reportsSubmitted: 1 } });
   const billboard = await handleBillboardCreation(report);
-  console.log("Billboard linked/created:", billboard);
-
+  report.billboard = billboard._id;
+  await report.save();
   return res.status(StatusCodes.CREATED).json({
     data: report,
     message: "Report created successfully.",
@@ -391,46 +389,97 @@ const getReportById = async (req, res) => {
 };
 
 const voteReport = async (req, res) => {
-  const { reportId } = req.params;
-  const { voteType } = req.body; // 'upvote' or 'downvote'
-  const userId = req.user._id;
+  try {
+    const { reportId } = req.params;
+    const { voteType } = req.body;
+    const userId = req.user.id;
 
-  const report = await Report.findById(reportId).populate("billboard");
-  if (!report) return res.status(404).json({ message: "Report not found" });
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
 
-  // Remove user from both arrays first
-  report.upvotes = report.upvotes.filter(
-    (u) => u.toString() !== userId.toString()
-  );
-  report.downvotes = report.downvotes.filter(
-    (u) => u.toString() !== userId.toString()
-  );
+    const report = await Report.findById(reportId).populate("billboard");
+    if (!report) {
+      return res.status(404).json({ message: "Report not found" });
+    }
 
-  // Add to appropriate array
-  if (voteType === "upvote") report.upvotes.push(userId);
-  else if (voteType === "downvote") report.downvotes.push(userId);
+    if (!Array.isArray(report.upvotes)) report.upvotes = [];
+    if (!Array.isArray(report.downvotes)) report.downvotes = [];
 
-  // Recalculate report confidence
-  const totalVotes = report.upvotes.length + report.downvotes.length;
-  const score = totalVotes ? (report.upvotes.length / totalVotes) * 100 : 0;
-  report.aiAnalysis.confidence = score;
+    // Remove existing votes
+    const hadUpvote = report.upvotes.some(
+      (u) => u.toString() === userId.toString()
+    );
+    const hadDownvote = report.downvotes.some(
+      (u) => u.toString() === userId.toString()
+    );
 
-  await report.save();
+    report.upvotes = report.upvotes.filter(
+      (u) => u.toString() !== userId.toString()
+    );
+    report.downvotes = report.downvotes.filter(
+      (u) => u.toString() !== userId.toString()
+    );
 
-  // Recalculate billboard crowd confidence
-  const allReports = await Report.find({ billboard: report.billboard._id });
-  const billboardConfidence =
-    allReports.reduce((sum, r) => sum + r.aiAnalysis.confidence, 0) /
-    allReports.length;
+    // Update trust score safely
+    if (voteType === "upvote") {
+      if (!hadUpvote && report?.communityTrustScore) {
+        report.communityTrustScore = Math.max(
+          0,
+          report.communityTrustScore + 1
+        );
+      }
+      report.upvotes.push(userId);
+    } else if (voteType === "downvote") {
+      if (!hadDownvote && report?.communityTrustScore) {
+        report.communityTrustScore = Math.max(
+          0,
+          report.communityTrustScore - 1
+        );
+      }
+      report.downvotes.push(userId);
+    }
 
-  report.billboard.crowdConfidence = billboardConfidence;
-  await report.billboard.save();
+    await report.save();
 
-  return res.status(200).json({
-    message: "Vote recorded",
-    reportConfidence: report.aiAnalysis.confidence,
-    billboardConfidence: billboardConfidence,
-  });
+    // Recalculate billboard crowd confidence
+    if (report.billboard?._id) {
+      const allReports = await Report.find({ billboard: report.billboard._id });
+
+      let totalConfidence = 0;
+      allReports.forEach((r) => {
+        const aiConf = r.aiAnalysis?.confidence ?? 50;
+        const trustScore = Math.max(0, r.communityTrustScore ?? 0);
+
+        // Scale trust effect (0 → no boost, higher trust → stronger boost)
+        const maxTrust = 10; // cap sensitivity
+        const trustWeight = Math.min(trustScore / maxTrust, 1);
+
+        const effectiveConfidence = aiConf * (0.7 + 0.3 * trustWeight); // AI is 70% base, 30% boosted by trust
+
+        totalConfidence += effectiveConfidence;
+      });
+
+      const billboardConfidence = totalConfidence / (allReports.length || 1);
+
+      report.billboard.crowdConfidence = billboardConfidence;
+      await report.billboard.save();
+
+      return res.status(200).json({
+        message: "Vote recorded",
+        data: report,
+        billboardConfidence,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Vote recorded, but billboard not linked",
+      data: report,
+    });
+  } catch (err) {
+    console.error("Error voting report:", err);
+    return res.status(500).json({ message: err.message });
+  }
 };
 
 module.exports = {

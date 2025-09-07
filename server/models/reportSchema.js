@@ -96,6 +96,11 @@ const reportSchema = new mongoose.Schema({
   adminNotes: {
     type: String,
   },
+  // billboard reference
+  billboard: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Billboard",
+  },
   //gamification
   xpAwarded: { type: Number, default: 0 },
   upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
@@ -107,6 +112,7 @@ const reportSchema = new mongoose.Schema({
       createdAt: { type: Date, default: Date.now },
     },
   ],
+  communityTrustScore: { type: Number, default: 0 },
 });
 
 reportSchema.index({ location: "2dsphere" });
